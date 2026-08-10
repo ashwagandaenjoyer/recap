@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recap — your study system</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#C6900F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Recap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#FAFAF8;
+  --bg-soft:#F1EFE9;
+  --surface:#FFFFFF;
+  --border:#E6E3DA;
+  --border-strong:#D6D2C4;
+  --ink:#1E1D1A;
+  --grey:#6F6C62;
+  --grey-soft:#9C988A;
+  --yellow:#C6900F;
+  --yellow-deep:#A87A0D;
+  --yellow-soft:#FBEEC9;
+  --green:#3F7A5D;
+  --green-soft:#E4F0EA;
+  --wine:#AB4A4F;
+  --wine-soft:#F6E6E6;
+  --shadow: 0 1px 2px rgba(30,29,26,0.04), 0 8px 24px -12px rgba(30,29,26,0.12);
+  --font-body: 'Inter', sans-serif;
+}
+body.dark{
+  --bg:#151412;
+  --bg-soft:#1E1C19;
+  --surface:#211F1B;
+  --border:#34322B;
+  --border-strong:#45423A;
+  --ink:#F3F1E9;
+  --grey:#B6B2A4;
+  --grey-soft:#84806F;
+  --green-soft:#1F2E27;
+  --wine-soft:#2E1E20;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -12px rgba(0,0,0,0.55);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  transition:background .2s ease, color .2s ease;
+}
+::selection{background:var(--yellow-soft); color:var(--ink);}
+:focus-visible{outline:2px solid var(--yellow-deep); outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
+button{font-family:inherit;}
+
+.wrap{max-width:960px;margin:0 auto;padding:40px 20px 100px;}
+
+/* ---------- Header ---------- */
+header{display:flex; justify-content:space-between; align-items:flex-end; gap:20px; margin-bottom:32px; flex-wrap:wrap;}
+.header-left{display:flex; align-items:center; gap:14px;}
+.icon-btn{
+  width:38px; height:38px; border-radius:50%; border:1px solid var(--border); background:var(--surface);
+  color:var(--ink); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.icon-btn:hover{border-color:var(--yellow-deep);}
+.eyebrow{font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--yellow-deep); margin-bottom:8px;}
+h1{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(26px,4.4vw,42px); margin:0; line-height:1.05; letter-spacing:-.01em;}
+h1 span{color:var(--yellow-deep); font-style:italic; font-weight:400;}
+.header-right{display:flex; align-items:center; gap:10px;}
+.streak{
+  display:flex; align-items:center; gap:8px;
+  background:var(--surface); border:1px solid var(--border); border-radius:100px;
+  padding:8px 14px; font-family:'Space Mono',monospace; font-size:12px; color:var(--grey);
+  box-shadow:var(--shadow); flex-shrink:0;
+}
+.streak b{color:var(--ink); font-weight:700;}
+.streak .dot{width:7px;height:7px;border-radius:50%;background:var(--yellow);}
+
+/* storage banner */
+.banner{
+  background:var(--wine-soft); color:var(--wine); font-family:'Space Mono',monospace; font-size:12px;
+  padding:10px 16px; border-radius:9px; margin-bottom:18px; display:flex; justify-content:space-between; gap:12px; align-items:center;
+}
+.banner button{background:none;border:none;color:inherit;cursor:pointer;font-size:15px;line-height:1;}
+
+/* ---------- Views ---------- */
+.view{display:none;}
+.view.on{display:block;}
+
+/* ---------- Grid cards (folders + chapters) ---------- */
+.card-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px;}
+.grid-card{
+  position:relative; background:var(--surface); border:1px solid var(--border); border-radius:14px;
+  padding:18px 16px; cursor:pointer; text-align:left; box-shadow:var(--shadow);
+  display:flex; flex-direction:column; gap:10px; transition:transform .12s ease;
+}
+.grid-card:hover{transform:translateY(-2px);}
+.grid-name{font-family:'Fraunces',serif; font-weight:600; font-size:15.5px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.grid-sub{font-family:'Space Mono',monospace; font-size:11px; color:var(--grey);}
+.grid-actions{position:absolute; top:10px; right:10px; display:none; gap:4px;}
+.grid-card:hover .grid-actions{display:flex;}
+.mini-btn{width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--grey); font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+.mini-btn:hover{border-color:var(--wine); color:var(--wine);}
+.new-tile{
+  border:1.5px dashed var(--border-strong); border-radius:14px; background:none; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  padding:18px 16px; min-height:118px; color:var(--grey); font-family:'Space Mono',monospace; font-size:12px;
+}
+.new-tile:hover{border-color:var(--yellow-deep); color:var(--yellow-deep);}
+.new-tile .plus{font-size:26px; line-height:1;}
+
+/* ---------- Folder / chapter context bar ---------- */
+.context-bar{display:flex; align-items:center; gap:10px; margin-bottom:18px; font-family:'Space Mono',monospace; font-size:12px; color:var(--grey); flex-wrap:wrap;}
+.context-dot{width:10px; height:10px; border-radius:3px; flex-shrink:0;}
+.context-sep{opacity:.5;}
+
+/* ---------- Setup ---------- */
+.setup{
+  background:var(--surface); border:1px solid var(--border); border-radius:14px;
+  box-shadow:var(--shadow); margin-bottom:24px; overflow:hidden;
+}
+.setup-body{padding:22px 24px 24px;}
+.setup-label{font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--grey); margin-bottom:10px; display:flex; justify-content:space-between;}
+textarea{
+  width:100%; min-height:140px; resize:vertical; border:1.5px solid var(--border); border-radius:10px;
+  padding:14px 16px; font-family:var(--font-body); font-size:14.5px; line-height:1.6; color:var(--ink);
+  background:var(--bg-soft);
+}
+textarea:focus{outline:none; border-color:var(--yellow-deep); background:var(--surface);}
+textarea::placeholder{color:var(--grey-soft);}
+
+.file-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px;}
+.file-btn{
+  font-family:'Space Mono',monospace; font-size:12px; background:var(--bg-soft); border:1px solid var(--border-strong);
+  color:var(--ink); padding:8px 13px; border-radius:8px; cursor:pointer;
+}
+.file-btn:hover{border-color:var(--yellow-deep);}
+#fileInput, #fontUpload{display:none;}
+.chips{display:flex; gap:6px; flex-wrap:wrap;}
+.chip{
+  font-family:'Space Mono',monospace; font-size:11px; background:var(--yellow-soft); border:1px solid var(--yellow);
+  color:var(--yellow-deep); padding:5px 9px; border-radius:20px; display:flex; align-items:center; gap:6px;
+}
+.chip button{background:none;border:none;color:var(--yellow-deep);cursor:pointer;font-size:13px;padding:0;line-height:1;}
+
+.count-row{display:flex; gap:28px; flex-wrap:wrap; margin-top:22px;}
+.count-group{flex:1; min-width:200px;}
+.count-title{font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--grey); margin-bottom:9px;}
+.count-chips{display:flex; gap:6px; flex-wrap:wrap;}
+.count-chip{
+  font-family:'Space Mono',monospace; font-size:12.5px; padding:7px 12px; border-radius:8px;
+  border:1.5px solid var(--border-strong); background:var(--surface); color:var(--grey); cursor:pointer;
+}
+.count-chip:hover{border-color:var(--yellow-deep);}
+.count-chip.on{background:var(--ink); border-color:var(--ink); color:var(--bg);}
+
+.setup-footer{display:flex; justify-content:flex-end; align-items:center; gap:12px; margin-top:24px;}
+.primary-btn{
+  font-family:'Space Mono',monospace; font-size:13px; letter-spacing:.03em; background:var(--yellow-deep);
+  color:#fff; border:none; padding:13px 24px; border-radius:9px; cursor:pointer; transition:transform .12s ease, background .12s ease;
+}
+.primary-btn:hover:not(:disabled){background:var(--ink); transform:translateY(-1px);}
+.primary-btn:disabled{opacity:.5; cursor:not-allowed;}
+.ghost-btn{
+  font-family:'Space Mono',monospace; font-size:12px; background:none; border:1px solid var(--border-strong);
+  color:var(--grey); padding:9px 14px; border-radius:8px; cursor:pointer;
+}
+.ghost-btn:hover{border-color:var(--ink); color:var(--ink);}
+
+.status{font-family:'Space Mono',monospace; font-size:12px; color:var(--grey); margin:14px 2px; min-height:16px;}
+.status.err{color:var(--wine);}
+
+/* ---------- Tabs ---------- */
+.tab-strip{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; align-items:center;}
+.tab-btn{
+  font-family:'Space Mono',monospace; font-size:12px; letter-spacing:.05em; text-transform:uppercase;
+  background:var(--surface); border:1px solid var(--border); color:var(--grey);
+  padding:10px 16px; border-radius:9px; cursor:pointer; display:flex; align-items:center; gap:7px;
+}
+.tab-btn.on{background:var(--ink); border-color:var(--ink); color:var(--bg);}
+.tab-btn:hover:not(.on){border-color:var(--yellow-deep); color:var(--ink);}
+.tab-btn .badge{font-size:10.5px; background:var(--yellow-soft); color:var(--yellow-deep); padding:1px 6px; border-radius:20px;}
+.tab-btn.on .badge{background:rgba(255,255,255,.18); color:var(--bg);}
+.spacer{flex:1;}
+
+.panel{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:30px; min-height:340px; box-shadow:var(--shadow);}
+.panel-inner{display:none;}
+.panel-inner.on{display:block;}
+.empty-kit{
+  border:1.5px dashed var(--border-strong); border-radius:14px; padding:60px 20px; text-align:center; cursor:pointer;
+}
+.empty-kit:hover{border-color:var(--yellow-deep);}
+.empty-kit .plus{width:52px; height:52px; border-radius:50%; background:var(--yellow-soft); color:var(--yellow-deep); font-size:26px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;}
+.empty-kit p{font-family:'Space Mono',monospace; font-size:13px; color:var(--grey);}
+
+/* ---------- Flashcards ---------- */
+.fc-toprow{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px;}
+.fc-meta{font-family:'Space Mono',monospace; font-size:12px; color:var(--grey);}
+.fc-mastery{display:flex; align-items:center; gap:8px;}
+.fc-bar{width:110px; height:6px; background:var(--bg-soft); border-radius:4px; overflow:hidden;}
+.fc-bar-fill{height:100%; background:var(--green); transition:width .3s ease;}
+.filter-toggle{font-family:'Space Mono',monospace; font-size:11.5px; color:var(--grey); background:var(--bg-soft); border:1px solid var(--border); padding:6px 11px; border-radius:20px; cursor:pointer;}
+.filter-toggle.on{background:var(--yellow-soft); border-color:var(--yellow); color:var(--yellow-deep);}
+
+.fc-stage{perspective:1800px; height:300px; margin-bottom:20px;}
+.fc-card{position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .5s cubic-bezier(.4,.2,.2,1); cursor:pointer;}
+.fc-card.flipped{transform:rotateY(180deg);}
+.fc-face{
+  position:absolute; inset:0; backface-visibility:hidden; border-radius:12px; border:1.5px solid var(--border);
+  background:var(--bg-soft); display:flex; align-items:center; justify-content:center; text-align:center;
+  padding:34px; font-size:19px; line-height:1.5; overflow:auto;
+}
+.fc-face.back{transform:rotateY(180deg); background:var(--ink); color:var(--bg);}
+.fc-tag{position:absolute; top:14px; left:20px; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; opacity:.45;}
+.fc-star{position:absolute; top:12px; right:14px; font-size:16px;}
+
+.fc-mark-row{display:flex; justify-content:center; gap:10px; margin-bottom:16px;}
+.mark-btn{
+  font-family:'Space Mono',monospace; font-size:12px; padding:9px 16px; border-radius:8px; border:1.5px solid var(--border-strong);
+  background:var(--surface); color:var(--grey); cursor:pointer;
+}
+.mark-btn.learning:hover, .mark-btn.learning.active{background:var(--wine-soft); border-color:var(--wine); color:var(--wine);}
+.mark-btn.got-it:hover, .mark-btn.got-it.active{background:var(--green-soft); border-color:var(--green); color:var(--green);}
+
+.fc-controls{display:flex; justify-content:center; align-items:center; gap:16px;}
+.round-btn{width:40px; height:40px; border-radius:50%; border:1.5px solid var(--border-strong); background:var(--surface); color:var(--ink); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;}
+.round-btn:hover{border-color:var(--ink);}
+.text-btn{font-family:'Space Mono',monospace; font-size:12px; background:none; border:none; text-decoration:underline; color:var(--grey); cursor:pointer;}
+.kbd-hint{text-align:center; font-family:'Space Mono',monospace; font-size:10.5px; color:var(--grey-soft); margin-top:14px;}
+
+/* ---------- Quiz ---------- */
+.q-progress{height:5px; background:var(--bg-soft); border-radius:3px; margin-bottom:22px; overflow:hidden;}
+.q-progress-bar{height:100%; background:var(--yellow-deep); transition:width .3s ease;}
+.q-count{font-family:'Space Mono',monospace; font-size:12px; color:var(--grey); margin-bottom:8px;}
+.q-question{font-family:'Fraunces',serif; font-size:21px; font-weight:600; margin-bottom:20px; line-height:1.35;}
+.q-options{display:flex; flex-direction:column; gap:9px;}
+.q-opt{
+  text-align:left; padding:13px 15px; border-radius:9px; border:1.5px solid var(--border); background:var(--bg-soft);
+  cursor:pointer; font-size:14.5px; color:var(--ink); display:flex; gap:10px;
+}
+.q-opt .k{font-family:'Space Mono',monospace; color:var(--grey-soft); font-size:12px;}
+.q-opt:hover:not(:disabled){border-color:var(--yellow-deep);}
+.q-opt.correct{background:var(--green-soft); border-color:var(--green); color:var(--ink);}
+.q-opt.wrong{background:var(--wine-soft); border-color:var(--wine); color:var(--ink);}
+.q-opt:disabled{cursor:default;}
+.q-explain{margin-top:16px; padding:14px 16px; background:var(--bg-soft); border-radius:9px; font-size:13.5px; line-height:1.55; display:none;}
+.q-explain.on{display:block;}
+.q-next{margin-top:18px;}
+.q-result{text-align:center; padding:20px 0;}
+.q-result .big{font-family:'Fraunces',serif; font-size:50px; font-weight:700; color:var(--yellow-deep);}
+.q-result p{color:var(--grey); margin-top:8px;}
+
+/* ---------- Recap ---------- */
+.recap-toolbar-hint{font-family:'Space Mono',monospace; font-size:11.5px; color:var(--grey-soft); margin-bottom:18px;}
+.recap-title{font-family:'Fraunces',serif; font-size:25px; font-weight:600; margin-bottom:14px;}
+.recap-summary{font-size:15px; line-height:1.7; margin-bottom:24px; color:var(--ink);}
+.recap-section-label{font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--grey); margin:22px 0 10px;}
+.recap-points{list-style:none; padding:0; margin:0; counter-reset:kp;}
+.recap-points li{counter-increment:kp; display:flex; gap:14px; padding:13px 0; border-top:1px solid var(--border); font-size:14.5px; line-height:1.55;}
+.recap-points li::before{content:counter(kp,decimal-leading-zero); font-family:'Space Mono',monospace; font-size:12.5px; color:var(--yellow-deep); flex-shrink:0; padding-top:1px;}
+.recap-mistakes{list-style:none; padding:0; margin:0;}
+.recap-mistakes li{display:flex; gap:10px; padding:10px 0; font-size:14px; line-height:1.5; border-top:1px solid var(--border);}
+.recap-mistakes li::before{content:'!'; font-family:'Space Mono',monospace; font-weight:700; color:var(--wine); flex-shrink:0;}
+mark.hl{background:var(--yellow-soft); color:var(--ink); padding:0 2px; border-radius:2px;}
+span.ul{text-decoration:underline; text-decoration-color:var(--yellow-deep); text-decoration-thickness:2px;}
+
+.hl-toolbar{
+  position:fixed; display:none; gap:4px; background:var(--ink); padding:6px; border-radius:9px; box-shadow:0 8px 20px rgba(0,0,0,.25); z-index:60;
+}
+.hl-toolbar button{background:none; border:none; color:var(--bg); font-family:'Space Mono',monospace; font-size:11.5px; padding:7px 10px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:5px;}
+.hl-toolbar button:hover{background:rgba(128,128,128,.25);}
+.hl-toolbar .swatch{width:10px;height:10px;border-radius:2px;background:var(--yellow);}
+
+/* ---------- Progress panel ---------- */
+.stats-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:24px;}
+.stat-card{background:var(--bg-soft); border:1px solid var(--border); border-radius:12px; padding:18px;}
+.stat-num{font-family:'Fraunces',serif; font-size:32px; font-weight:600; color:var(--ink);}
+.stat-label{font-family:'Space Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--grey); margin-top:4px;}
+.danger-zone{border-top:1px solid var(--border); margin-top:12px; padding-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;}
+.danger-zone p{font-size:13px; color:var(--grey); margin:0; max-width:400px;}
+
+/* ---------- Modal / Drawer ---------- */
+.modal-overlay, .drawer-overlay{
+  position:fixed; inset:0; background:rgba(20,19,17,.45); display:none; align-items:center; justify-content:center; z-index:100;
+}
+.modal-overlay.on, .drawer-overlay.on{display:flex;}
+.modal{background:var(--surface); border-radius:14px; padding:26px; width:340px; max-width:90vw; box-shadow:var(--shadow);}
+.modal h3{font-family:'Fraunces',serif; margin:0 0 16px; font-size:19px;}
+.modal p.hint{font-size:12.5px; color:var(--grey); margin:-10px 0 16px;}
+.modal input[type=text]{
+  width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:8px; font-family:var(--font-body);
+  font-size:14px; background:var(--bg-soft); color:var(--ink); margin-bottom:16px;
+}
+.modal input[type=text]:focus{outline:none; border-color:var(--yellow-deep);}
+.color-swatches{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px;}
+.swatch-btn{width:28px; height:28px; border-radius:50%; border:2px solid transparent; cursor:pointer;}
+.swatch-btn.on{border-color:var(--ink);}
+.modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:18px;}
+
+.drawer-overlay{justify-content:flex-end;}
+.drawer{background:var(--surface); width:320px; max-width:88vw; height:100%; padding:24px; box-shadow:var(--shadow); overflow-y:auto;}
+.drawer-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:22px;}
+.drawer-header h3{font-family:'Fraunces',serif; margin:0; font-size:20px;}
+.drawer-section{margin-bottom:26px; padding-bottom:22px; border-bottom:1px solid var(--border);}
+.drawer-section:last-child{border-bottom:none;}
+.drawer-label{font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--grey); margin-bottom:12px;}
+.toggle-row{display:flex; justify-content:space-between; align-items:center; font-size:14px;}
+.switch{position:relative; display:inline-block; width:42px; height:24px;}
+.switch input{opacity:0; width:0; height:0;}
+.slider{position:absolute; cursor:pointer; inset:0; background:var(--border-strong); border-radius:24px; transition:.2s;}
+.slider::before{content:''; position:absolute; height:18px; width:18px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.2s;}
+input:checked + .slider{background:var(--yellow-deep);}
+input:checked + .slider::before{transform:translateX(18px);}
+#customAccentInput{width:100%; height:36px; border:1.5px solid var(--border); border-radius:8px; background:var(--bg-soft); cursor:pointer; margin-top:8px;}
+.font-current{font-size:13.5px; color:var(--ink); margin-bottom:12px;}
+.drawer-section .file-btn, .drawer-section .ghost-btn{margin-right:8px; margin-top:6px;}
+
+@media (max-width:600px){
+  .setup-body{padding:18px;}
+  .panel{padding:20px;}
+  .fc-stage{height:250px;}
+  header{align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="header-left">
+      <button class="icon-btn" id="backBtn" style="display:none;" aria-label="Back">←</button>
+      <div>
+        <div class="eyebrow" id="breadcrumbEyebrow">Study system</div>
+        <h1 id="pageTitle">Recap. Recall. <span>Repeat.</span></h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="streak" id="streakWidget"><span class="dot"></span><span>Streak: <b id="streakNum">0</b> day<span id="streakPlural">s</span></span></div>
+      <button class="ghost-btn" id="installBtn" style="display:none;">Install app</button>
+      <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙</button>
+    </div>
+  </header>
+
+  <div id="bannerHost"></div>
+
+  <!-- HOME: folders -->
+  <div class="view on" id="view-home">
+    <div class="card-grid" id="folderGrid"></div>
+  </div>
+
+  <!-- FOLDER: chapters inside a folder -->
+  <div class="view" id="view-folder">
+    <div class="context-bar" id="folderContextBar"></div>
+    <div class="card-grid" id="chapterGrid"></div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="view" id="view-setup">
+    <div class="context-bar" id="setupContextBar"></div>
+    <div class="setup">
+      <div class="setup-body">
+        <div class="setup-label"><span>Course material</span><span id="charCount">0 characters</span></div>
+        <textarea id="sourceText" placeholder="Paste your notes, textbook chapter, or lecture content — physics, biology, calculus, anything. Or add files below."></textarea>
+        <div class="file-row">
+          <button class="file-btn" id="uploadBtn" type="button">+ Add files (.txt .md .pdf)</button>
+          <input type="file" id="fileInput" accept=".txt,.md,.pdf" multiple>
+          <div class="chips" id="chips"></div>
+        </div>
+
+        <div class="count-row">
+          <div class="count-group">
+            <div class="count-title">Flashcards</div>
+            <div class="count-chips" id="fcCountChips"></div>
+          </div>
+          <div class="count-group">
+            <div class="count-title">Quiz questions</div>
+            <div class="count-chips" id="quizCountChips"></div>
+          </div>
+          <div class="count-group">
+            <div class="count-title">Output language</div>
+            <div class="count-chips" id="langChips"></div>
+          </div>
+        </div>
+
+        <div class="setup-footer">
+          <button class="primary-btn" id="generateBtn" type="button">Generate study kit</button>
+        </div>
+      </div>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <!-- STUDY: one chapter's flashcards/quiz/recap -->
+  <div class="view" id="view-study">
+    <div class="context-bar" id="studyContextBar"></div>
+
+    <div class="tabs" id="tabs">
+      <div class="tab-strip">
+        <button class="tab-btn on" data-panel="flash">Flashcards <span class="badge" id="fcBadge">0</span></button>
+        <button class="tab-btn" data-panel="quiz">Quiz <span class="badge" id="quizBadge">0</span></button>
+        <button class="tab-btn" data-panel="recap">Recap</button>
+        <button class="tab-btn" data-panel="progress">Progress</button>
+        <div class="spacer"></div>
+        <button class="ghost-btn" id="editMaterialBtn">Edit material</button>
+      </div>
+      <div class="panel">
+
+        <div class="panel-inner on" id="panel-flash">
+          <div id="flashContent">
+            <div class="fc-toprow">
+              <div class="fc-meta" id="fcCounter">Card 1 of 10</div>
+              <div class="fc-mastery">
+                <div class="fc-bar"><div class="fc-bar-fill" id="fcBarFill" style="width:0%"></div></div>
+                <button class="filter-toggle" id="fcFilterToggle">Still learning only</button>
+              </div>
+            </div>
+            <div class="fc-stage">
+              <div class="fc-card" id="fcCard">
+                <div class="fc-face front"><span class="fc-tag">Question</span><span class="fc-star" id="fcStar"></span><div id="fcFront"></div></div>
+                <div class="fc-face back"><span class="fc-tag">Answer</span><div id="fcBack"></div></div>
+              </div>
+            </div>
+            <div class="fc-mark-row">
+              <button class="mark-btn learning" id="fcMarkLearning">Still learning</button>
+              <button class="mark-btn got-it" id="fcMarkGot">Got it</button>
+            </div>
+            <div class="fc-controls">
+              <button class="round-btn" id="fcPrev" aria-label="Previous card">←</button>
+              <button class="text-btn" id="fcShuffle">Shuffle</button>
+              <button class="round-btn" id="fcNext" aria-label="Next card">→</button>
+            </div>
+            <div class="kbd-hint">Space to flip · ← → to move · L / G to mark</div>
+          </div>
+        </div>
+
+        <div class="panel-inner" id="panel-quiz">
+          <div id="quizContent"></div>
+        </div>
+
+        <div class="panel-inner" id="panel-recap">
+          <div class="recap-toolbar-hint">Select any text to highlight or underline it — your marks are saved automatically.</div>
+          <div id="recapBody"></div>
+        </div>
+
+        <div class="panel-inner" id="panel-progress">
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-num" id="statMastered">0/0</div><div class="stat-label">Flashcards mastered</div></div>
+            <div class="stat-card"><div class="stat-num" id="statQuizBest">—</div><div class="stat-label">Best quiz score</div></div>
+            <div class="stat-card"><div class="stat-num" id="statQuizLast">—</div><div class="stat-label">Last quiz score</div></div>
+            <div class="stat-card"><div class="stat-num" id="statStreak">0</div><div class="stat-label">Day streak</div></div>
+          </div>
+          <div class="danger-zone">
+            <p>Clearing progress resets mastery and quiz scores for this chapter without deleting your flashcards, quiz, or recap.</p>
+            <button class="ghost-btn" id="clearProgressBtn">Clear progress</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Folder create/edit modal -->
+<div class="modal-overlay" id="folderModalOverlay">
+  <div class="modal">
+    <h3 id="folderModalTitle">New folder</h3>
+    <input type="text" id="folderNameInput" placeholder="e.g. Organic Chemistry">
+    <div class="color-swatches" id="folderColorSwatches"></div>
+    <div class="modal-actions">
+      <button class="ghost-btn" id="folderModalCancel">Cancel</button>
+      <button class="primary-btn" id="folderModalSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Chapter name modal (create/rename) -->
+<div class="modal-overlay" id="chapterModalOverlay">
+  <div class="modal">
+    <h3 id="chapterModalTitle">Name this chapter</h3>
+    <p class="hint" id="chapterModalHint">This is how it'll appear inside the folder.</p>
+    <input type="text" id="chapterNameInput" placeholder="e.g. Chapter 4 — Thermodynamics">
+    <div class="modal-actions">
+      <button class="ghost-btn" id="chapterModalCancel">Cancel</button>
+      <button class="primary-btn" id="chapterModalSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings drawer -->
+<div class="drawer-overlay" id="settingsOverlay">
+  <div class="drawer">
+    <div class="drawer-header"><h3>Settings</h3><button class="icon-btn" id="settingsClose" aria-label="Close">×</button></div>
+    <div class="drawer-section">
+      <div class="drawer-label">Appearance</div>
+      <div class="toggle-row"><span>Dark mode</span><label class="switch"><input type="checkbox" id="darkModeToggle"><span class="slider"></span></label></div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">Accent color</div>
+      <div class="color-swatches" id="accentSwatches"></div>
+      <input type="color" id="customAccentInput" value="#C6900F">
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">Font</div>
+      <div class="font-current" id="currentFontName">Default (Inter)</div>
+      <button class="file-btn" id="fontUploadBtn" type="button">Upload font</button>
+      <button class="ghost-btn" id="fontResetBtn" type="button">Reset</button>
+      <input type="file" id="fontUpload" accept=".ttf,.otf,.woff,.woff2">
+    </div>
+  </div>
+</div>
+
+<div class="hl-toolbar" id="hlToolbar">
+  <button id="hlHighlightBtn"><span class="swatch"></span>Highlight</button>
+  <button id="hlUnderlineBtn">Underline</button>
+  <button id="hlClearBtn">Clear</button>
+</div>
+
+<script>
+/* ================= PDF worker =================
+   Loaded as a same-origin blob to avoid cross-origin Worker restrictions.
+   Some sandboxed browser contexts block Worker creation outright, in which
+   case pdf.js quietly (and safely) falls back to running parsing on the
+   main thread. That fallback logs a "fake worker" notice from inside the
+   library itself — it isn't an error, so we filter just that one message
+   rather than let it look like something broke. Everything else still logs
+   normally. */
+(function filterBenignPdfWorkerNotice(){
+  const originalWarn = console.warn.bind(console);
+  console.warn = (...args) => {
+    const msg = args.map(a => (typeof a === 'string' ? a : '')).join(' ');
+    if(/fake\s*worker/i.test(msg)) return;
+    originalWarn(...args);
+  };
+})();
+
+let pdfWorkerReadyResolve;
+const pdfWorkerReady = new Promise(res => { pdfWorkerReadyResolve = res; });
+(async function setupPdfWorker(){
+  try{
+    const res = await fetch('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js');
+    const code = await res.text();
+    const blobUrl = URL.createObjectURL(new Blob([code], {type:'application/javascript'}));
+    pdfjsLib.GlobalWorkerOptions.workerSrc = blobUrl;
+  }catch(e){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }finally{
+    pdfWorkerReadyResolve();
+  }
+})();
+
+/* ================= Storage adapter =================
+   Tries Claude's artifact storage first; falls back to localStorage (works
+   fine for a standalone downloaded file); falls back to in-memory only as a
+   last resort, in which case the UI shows a visible banner rather than
+   silently losing data. */
+const memoryStore = {};
+let storageMode = 'memory';
+(function detectStorage(){
+  if(typeof window.storage !== 'undefined'){ storageMode = 'claude'; return; }
+  try{
+    const t = '__recap_probe__';
+    localStorage.setItem(t, '1');
+    localStorage.removeItem(t);
+    storageMode = 'local';
+  }catch(e){ storageMode = 'memory'; }
+})();
+async function storageGet(key){
+  if(storageMode === 'claude'){
+    try{ const res = await window.storage.get(key, false); return res ? res.value : null; }
+    catch(e){ return null; }
+  }
+  if(storageMode === 'local'){ return localStorage.getItem('recap:' + key); }
+  return memoryStore[key] || null;
+}
+async function storageSet(key, value){
+  if(storageMode === 'claude'){
+    try{ await window.storage.set(key, value, false); return true; } catch(e){ return false; }
+  }
+  if(storageMode === 'local'){
+    try{ localStorage.setItem('recap:' + key, value); return true; } catch(e){ return false; }
+  }
+  memoryStore[key] = value; return true;
+}
+async function storageDelete(key){
+  if(storageMode === 'claude'){ try{ await window.storage.delete(key, false); }catch(e){} return; }
+  if(storageMode === 'local'){ try{ localStorage.removeItem('recap:' + key); }catch(e){} return; }
+  delete memoryStore[key];
+}
+function showBanner(message){
+  const host = document.getElementById('bannerHost');
+  if(host.querySelector('.banner')) return;
+  const b = document.createElement('div');
+  b.className = 'banner';
+  const span = document.createElement('span');
+  span.textContent = message;
+  const btn = document.createElement('button');
+  btn.setAttribute('aria-label', 'Dismiss');
+  btn.textContent = '\u00D7';
+  btn.onclick = () => b.remove();
+  b.appendChild(span); b.appendChild(btn);
+  host.appendChild(b);
+}
+
+/* ================= Constants ================= */
+const FOLDER_COLORS = ['#C6900F','#2F6FA8','#3F7A5D','#AB4A4F','#7A5AA8','#2F8C87','#B15FA0','#6E6B60'];
+const LANGUAGES = [
+  {code:'en', label:'English'},
+  {code:'fr', label:'French'},
+  {code:'it', label:'Italian'},
+  {code:'source', label:'Same as source'}
+];
+
+/* ================= State ================= */
+let folders = [];
+let currentFolderId = null;
+let currentChapters = [];
+let currentChapterId = null;
+let kit = null;
+let settings = { dark:false, accent:'#C6900F', fontName:null, fontDataUrl:null };
+let globalProgress = { streak:0, lastActiveDate:null };
+let setupReturnView = 'folder';
+let pendingGeneratedResult = null; // holds a freshly generated kit awaiting a chapter name
+
+function defaultKit(){
+  return {
+    sourceText:'', files:[], fcCount:10, quizCount:10, language:'en',
+    flashcards:[], quiz:[], recap:null, recapHtml:null, generated:false,
+    progress:{ learned:[], stillLearning:[], quizBest:null, quizLast:null }
+  };
+}
+function kitForPersist(k){
+  // Never persist each uploaded file's full extracted text a second time —
+  // it's already merged into sourceText. Only the file name is kept, so
+  // chips still render after a reload.
+  return { ...k, files: k.files.map(f => ({ name: f.name })) };
+}
+
+/* ================= Persistence ================= */
+let kitSaveTimer;
+function saveKit(){
+  if(!currentFolderId || !currentChapterId) return;
+  clearTimeout(kitSaveTimer);
+  kitSaveTimer = setTimeout(async () => {
+    const ok = await storageSet(kitKey(currentFolderId, currentChapterId), JSON.stringify(kitForPersist(kit)));
+    if(!ok) showBanner('Some changes could not be saved — your browser storage may be full or restricted.');
+  }, 700);
+}
+function kitKey(folderId, chapterId){ return 'kit:' + folderId + ':' + chapterId; }
+function chaptersKey(folderId){ return 'chapters:' + folderId; }
+
+async function saveFolders(){
+  const ok = await storageSet('folders', JSON.stringify(folders));
+  if(!ok) showBanner('Could not save your folders — your browser storage may be full or restricted.');
+}
+async function saveChapters(){
+  const ok = await storageSet(chaptersKey(currentFolderId), JSON.stringify(currentChapters));
+  if(!ok) showBanner('Could not save this chapter list — your browser storage may be full or restricted.');
+  return ok;
+}
+async function saveSettings(){ await storageSet('settings', JSON.stringify(settings)); }
+async function saveGlobalProgress(){ await storageSet('global-progress', JSON.stringify(globalProgress)); }
+async function loadJSON(key, fallback){
+  const value = await storageGet(key);
+  if(!value) return fallback;
+  try{ return JSON.parse(value); } catch(e){ return fallback; }
+}
+
+/* ================= Init ================= */
+async function init(){
+  folders = await loadJSON('folders', []);
+  settings = await loadJSON('settings', settings);
+  globalProgress = await loadJSON('global-progress', globalProgress);
+  applySettings();
+  updateStreak();
+  buildLangChips();
+  buildAccentSwatches();
+  buildFolderColorSwatches();
+  renderHome();
+  showView('home');
+  if(storageMode === 'memory'){
+    showBanner('Your browser is blocking local storage, so nothing will be saved between visits.');
+  }
+}
+
+function updateStreak(){
+  const today = new Date().toISOString().slice(0,10);
+  const last = globalProgress.lastActiveDate;
+  if(last !== today){
+    if(last){
+      const y = new Date(); y.setDate(y.getDate()-1);
+      globalProgress.streak = (last === y.toISOString().slice(0,10)) ? globalProgress.streak + 1 : 1;
+    } else {
+      globalProgress.streak = 1;
+    }
+    globalProgress.lastActiveDate = today;
+    saveGlobalProgress();
+  }
+  document.getElementById('streakNum').textContent = globalProgress.streak;
+  document.getElementById('streakPlural').textContent = globalProgress.streak === 1 ? '' : 's';
+  const statStreak = document.getElementById('statStreak');
+  if(statStreak) statStreak.textContent = globalProgress.streak;
+}
+
+/* ================= View routing ================= */
+function showView(name){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  document.getElementById('view-' + name).classList.add('on');
+  const backBtn = document.getElementById('backBtn');
+  const eyebrow = document.getElementById('breadcrumbEyebrow');
+  const title = document.getElementById('pageTitle');
+  if(name === 'home'){
+    backBtn.style.display = 'none';
+    eyebrow.textContent = 'Study system';
+    title.innerHTML = 'Recap. Recall. <span>Repeat.</span>';
+    return;
+  }
+  backBtn.style.display = 'flex';
+  const folder = folders.find(f => f.id === currentFolderId);
+  const chapter = currentChapters.find(c => c.id === currentChapterId);
+  if(name === 'folder'){
+    eyebrow.textContent = 'Folder';
+    title.textContent = folder ? folder.name : 'Folder';
+  } else if(name === 'setup'){
+    eyebrow.textContent = 'Building a chapter';
+    title.textContent = folder ? folder.name : 'New chapter';
+  } else if(name === 'study'){
+    eyebrow.textContent = folder ? folder.name : 'Studying';
+    title.textContent = chapter ? chapter.name : 'Chapter';
+  }
+}
+document.getElementById('backBtn').onclick = () => {
+  const active = document.querySelector('.view.on').id;
+  if(active === 'view-study'){ renderFolderView(); showView('folder'); }
+  else if(active === 'view-setup'){
+    if(setupReturnView === 'study'){ showView('study'); }
+    else { renderFolderView(); showView('folder'); }
+  }
+  else if(active === 'view-folder'){ renderHome(); showView('home'); }
+};
+
+/* ================= Icons ================= */
+function folderIconSVG(color){
+  return `<svg width="44" height="34" viewBox="0 0 44 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="1" y="5" width="18" height="8" rx="3" fill="${color}" opacity="0.85"/>
+    <rect x="1" y="9" width="42" height="24" rx="4" fill="${color}"/>
+    <rect x="1" y="9" width="42" height="4" rx="4" fill="#fff" opacity="0.18"/>
+  </svg>`;
+}
+function chapterIconSVG(color){
+  return `<svg width="40" height="34" viewBox="0 0 40 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="7" y="1" width="26" height="30" rx="3" fill="${color}" opacity="0.25"/>
+    <rect x="4" y="4" width="26" height="30" rx="3" fill="${color}" opacity="0.55"/>
+    <rect x="1" y="7" width="26" height="26" rx="3" fill="${color}"/>
+    <line x1="6" y1="14" x2="22" y2="14" stroke="#fff" stroke-opacity="0.5" stroke-width="1.5"/>
+    <line x1="6" y1="19" x2="22" y2="19" stroke="#fff" stroke-opacity="0.5" stroke-width="1.5"/>
+    <line x1="6" y1="24" x2="16" y2="24" stroke="#fff" stroke-opacity="0.5" stroke-width="1.5"/>
+  </svg>`;
+}
+function escapeHtml(s){ const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+/* ================= Home: folders ================= */
+function renderHome(){
+  const grid = document.getElementById('folderGrid');
+  grid.innerHTML = '';
+  folders.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'grid-card';
+    const count = f.chapterCount || 0;
+    card.innerHTML = `
+      <div class="grid-actions">
+        <button class="mini-btn" data-action="edit" aria-label="Edit folder">✎</button>
+        <button class="mini-btn" data-action="delete" aria-label="Delete folder">🗑</button>
+      </div>
+      ${folderIconSVG(f.color)}
+      <div class="grid-name">${escapeHtml(f.name)}</div>
+      <div class="grid-sub">${count === 0 ? 'Empty — tap to add' : count + ' chapter' + (count===1?'':'s')}</div>
+    `;
+    card.addEventListener('click', (e) => { if(!e.target.closest('[data-action]')) openFolder(f.id); });
+    card.querySelector('[data-action="edit"]').onclick = (e) => { e.stopPropagation(); openFolderModal(f); };
+    card.querySelector('[data-action="delete"]').onclick = (e) => { e.stopPropagation(); deleteFolder(f.id); };
+    grid.appendChild(card);
+  });
+  const tile = document.createElement('button');
+  tile.className = 'new-tile';
+  tile.innerHTML = `<span class="plus">+</span><span>New folder</span>`;
+  tile.onclick = () => openFolderModal(null);
+  grid.appendChild(tile);
+}
+
+let editingFolderId = null;
+function buildFolderColorSwatches(){
+  const el = document.getElementById('folderColorSwatches');
+  el.innerHTML = '';
+  FOLDER_COLORS.forEach(c => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'swatch-btn'; b.style.background = c; b.dataset.color = c;
+    b.onclick = () => { el.querySelectorAll('.swatch-btn').forEach(s => s.classList.remove('on')); b.classList.add('on'); };
+    el.appendChild(b);
+  });
+}
+function openFolderModal(folder){
+  editingFolderId = folder ? folder.id : null;
+  document.getElementById('folderModalTitle').textContent = folder ? 'Edit folder' : 'New folder';
+  document.getElementById('folderNameInput').value = folder ? folder.name : '';
+  const chosen = folder ? folder.color : FOLDER_COLORS[0];
+  document.querySelectorAll('#folderColorSwatches .swatch-btn').forEach(b => b.classList.toggle('on', b.dataset.color === chosen));
+  document.getElementById('folderModalOverlay').classList.add('on');
+  document.getElementById('folderNameInput').focus();
+}
+document.getElementById('folderModalCancel').onclick = () => document.getElementById('folderModalOverlay').classList.remove('on');
+document.getElementById('folderModalSave').onclick = () => {
+  const name = document.getElementById('folderNameInput').value.trim() || 'Untitled folder';
+  const activeSwatch = document.querySelector('#folderColorSwatches .swatch-btn.on');
+  const color = activeSwatch ? activeSwatch.dataset.color : FOLDER_COLORS[0];
+  if(editingFolderId){
+    const f = folders.find(x => x.id === editingFolderId);
+    f.name = name; f.color = color;
+  } else {
+    folders.push({ id:'f' + Date.now(), name, color, createdAt:Date.now(), chapterCount:0 });
+  }
+  saveFolders();
+  renderHome();
+  document.getElementById('folderModalOverlay').classList.remove('on');
+};
+async function deleteFolder(id){
+  if(!confirm('Delete this folder and every chapter inside it? This cannot be undone.')) return;
+  const chapters = await loadJSON(chaptersKey(id), []);
+  for(const ch of chapters){ await storageDelete(kitKey(id, ch.id)); }
+  await storageDelete(chaptersKey(id));
+  folders = folders.filter(f => f.id !== id);
+  saveFolders();
+  renderHome();
+}
+
+/* ================= Folder view: chapters ================= */
+async function openFolder(id){
+  currentFolderId = id;
+  currentChapterId = null;
+  currentChapters = await loadJSON(chaptersKey(id), []);
+  renderFolderView();
+  showView('folder');
+}
+function renderFolderView(){
+  const f = folders.find(x => x.id === currentFolderId);
+  document.getElementById('folderContextBar').innerHTML = f ? `<span class="context-dot" style="background:${f.color}"></span><span>${escapeHtml(f.name)}</span>` : '';
+  const grid = document.getElementById('chapterGrid');
+  grid.innerHTML = '';
+  currentChapters.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'grid-card';
+    card.innerHTML = `
+      <div class="grid-actions">
+        <button class="mini-btn" data-action="rename" aria-label="Rename chapter">✎</button>
+        <button class="mini-btn" data-action="delete" aria-label="Delete chapter">🗑</button>
+      </div>
+      ${chapterIconSVG(f ? f.color : '#C6900F')}
+      <div class="grid-name">${escapeHtml(c.name)}</div>
+      <div class="grid-sub">${c.cardCount} cards · ${c.quizCount} Qs</div>
+    `;
+    card.addEventListener('click', (e) => { if(!e.target.closest('[data-action]')) openChapter(c.id); });
+    card.querySelector('[data-action="rename"]').onclick = (e) => { e.stopPropagation(); openChapterModal('rename', c.id); };
+    card.querySelector('[data-action="delete"]').onclick = (e) => { e.stopPropagation(); deleteChapter(c.id); };
+    grid.appendChild(card);
+  });
+  const tile = document.createElement('button');
+  tile.className = 'new-tile';
+  tile.innerHTML = `<span class="plus">+</span><span>New chapter</span>`;
+  tile.onclick = startNewChapter;
+  grid.appendChild(tile);
+}
+async function deleteChapter(id){
+  if(!confirm('Delete this chapter? Its flashcards, quiz, and recap will be gone for good.')) return;
+  await storageDelete(kitKey(currentFolderId, id));
+  currentChapters = currentChapters.filter(c => c.id !== id);
+  await saveChapters();
+  const f = folders.find(x => x.id === currentFolderId);
+  if(f){ f.chapterCount = currentChapters.length; saveFolders(); }
+  renderFolderView();
+}
+
+/* Chapter name modal — used both for naming a freshly generated chapter and for renaming */
+let chapterModalMode = 'create'; // 'create' | 'rename'
+let chapterModalTargetId = null;
+function openChapterModal(mode, targetId){
+  chapterModalMode = mode;
+  chapterModalTargetId = targetId || null;
+  const titleEl = document.getElementById('chapterModalTitle');
+  const input = document.getElementById('chapterNameInput');
+  if(mode === 'rename'){
+    const c = currentChapters.find(x => x.id === targetId);
+    titleEl.textContent = 'Rename chapter';
+    input.value = c ? c.name : '';
+  } else {
+    titleEl.textContent = 'Name this chapter';
+    const suggestion = (kit.recap && kit.recap.title) ? kit.recap.title : ('Chapter ' + (currentChapters.length + 1));
+    input.value = suggestion;
+  }
+  document.getElementById('chapterModalOverlay').classList.add('on');
+  input.focus(); input.select();
+}
+document.getElementById('chapterModalCancel').onclick = () => {
+  document.getElementById('chapterModalOverlay').classList.remove('on');
+  // If cancelling a fresh generation naming prompt, the kit is already saved under a temp id — just go study it with the default name.
+  if(chapterModalMode === 'create' && pendingGeneratedResult){ finalizeNewChapter(pendingGeneratedResult.suggestedName); }
+};
+document.getElementById('chapterModalSave').onclick = () => {
+  const name = document.getElementById('chapterNameInput').value.trim() || 'Untitled chapter';
+  document.getElementById('chapterModalOverlay').classList.remove('on');
+  if(chapterModalMode === 'rename'){
+    const c = currentChapters.find(x => x.id === chapterModalTargetId);
+    if(c){ c.name = name; saveChapters(); renderFolderView(); }
+  } else {
+    finalizeNewChapter(name);
+  }
+};
+
+async function openChapter(id){
+  currentChapterId = id;
+  kit = await loadJSON(kitKey(currentFolderId, id), defaultKit());
+  showStudyForCurrentKit();
+  showView('study');
+}
+function showStudyForCurrentKit(){
+  renderChapterContext();
+  renderFlashcards(); renderQuiz(); renderRecap();
+  switchTab('flash');
+}
+function renderChapterContext(){
+  const f = folders.find(x => x.id === currentFolderId);
+  const c = currentChapters.find(x => x.id === currentChapterId);
+  const el = document.getElementById('studyContextBar');
+  if(!f){ el.innerHTML = ''; return; }
+  el.innerHTML = `<span class="context-dot" style="background:${f.color}"></span><span>${escapeHtml(f.name)}</span><span class="context-sep">▸</span><span>${c ? escapeHtml(c.name) : ''}</span>`;
+}
+
+function startNewChapter(){
+  currentChapterId = null;
+  kit = defaultKit();
+  setupReturnView = 'folder';
+  const f = folders.find(x => x.id === currentFolderId);
+  document.getElementById('setupContextBar').innerHTML = f ? `<span class="context-dot" style="background:${f.color}"></span><span>${escapeHtml(f.name)}</span><span class="context-sep">▸</span><span>New chapter</span>` : '';
+  sourceText.value = '';
+  updateCharCount();
+  renderChips();
+  setActiveChip('fcCountChips', kit.fcCount);
+  setActiveChip('quizCountChips', kit.quizCount);
+  setActiveChip('langChips', LANGUAGES.findIndex(l => l.code === kit.language));
+  document.getElementById('status').textContent = '';
+  showView('setup');
+}
+document.getElementById('editMaterialBtn').onclick = () => {
+  setupReturnView = 'study';
+  const f = folders.find(x => x.id === currentFolderId);
+  const c = currentChapters.find(x => x.id === currentChapterId);
+  document.getElementById('setupContextBar').innerHTML = f ? `<span class="context-dot" style="background:${f.color}"></span><span>${escapeHtml(f.name)}</span><span class="context-sep">▸</span><span>${c ? escapeHtml(c.name) : ''}</span>` : '';
+  sourceText.value = kit.sourceText || '';
+  updateCharCount();
+  renderChips();
+  setActiveChip('fcCountChips', kit.fcCount);
+  setActiveChip('quizCountChips', kit.quizCount);
+  setActiveChip('langChips', LANGUAGES.findIndex(l => l.code === kit.language));
+  document.getElementById('status').textContent = '';
+  showView('setup');
+};
+
+/* ================= Setup: text + files ================= */
+const sourceText = document.getElementById('sourceText');
+function updateCharCount(){ document.getElementById('charCount').textContent = sourceText.value.length.toLocaleString() + ' characters'; }
+sourceText.addEventListener('input', () => { kit.sourceText = sourceText.value; updateCharCount(); saveKit(); });
+
+const fileInput = document.getElementById('fileInput');
+document.getElementById('uploadBtn').onclick = () => fileInput.click();
+function renderChips(){
+  const chips = document.getElementById('chips');
+  chips.innerHTML = '';
+  kit.files.forEach((f,i) => {
+    const c = document.createElement('div');
+    c.className = 'chip';
+    c.innerHTML = `<span>${escapeHtml(f.name)}</span><button aria-label="Remove ${escapeHtml(f.name)}">×</button>`;
+    c.querySelector('button').onclick = () => removeFile(i);
+    chips.appendChild(c);
+  });
+}
+function appendFileText(name, text){
+  kit.sourceText = (kit.sourceText + `\n\n--- ${name} ---\n${text}`).trim();
+  sourceText.value = kit.sourceText;
+  updateCharCount();
+}
+function removeFile(index){
+  const f = kit.files[index];
+  if(f && f.text){
+    const block = `\n\n--- ${f.name} ---\n${f.text}`;
+    kit.sourceText = kit.sourceText.split(block).join('');
+    sourceText.value = kit.sourceText;
+    updateCharCount();
+  }
+  kit.files.splice(index,1);
+  renderChips();
+  saveKit();
+}
+fileInput.onchange = async () => {
+  const files = Array.from(fileInput.files);
+  const statusEl = document.getElementById('status');
+  statusEl.textContent = 'Reading files…'; statusEl.className = 'status';
+  for(const file of files){
+    try{
+      const text = (file.name.toLowerCase().endsWith('.pdf') ? await extractPdfText(file) : await file.text()).trim();
+      kit.files.push({name:file.name, text});
+      appendFileText(file.name, text);
+    }catch(e){ statusEl.textContent = `Couldn't read ${file.name}: ${e.message}`; statusEl.className = 'status err'; }
+  }
+  renderChips(); saveKit();
+  if(!statusEl.classList.contains('err')) statusEl.textContent = '';
+  fileInput.value = '';
+};
+async function extractPdfText(file){
+  await pdfWorkerReady;
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data:buf}).promise;
+  let full = '';
+  for(let i=1;i<=pdf.numPages;i++){
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    full += content.items.map(it => it.str).join(' ') + '\n';
+  }
+  return full;
+}
+
+/* ================= Count + language chips ================= */
+function buildCountChips(containerId, values, kitKeyName){
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  values.forEach(v => {
+    const b = document.createElement('button');
+    b.className = 'count-chip';
+    b.textContent = v;
+    b.onclick = () => { kit[kitKeyName] = v; setActiveChip(containerId, v); saveKit(); };
+    el.appendChild(b);
+  });
+}
+function buildLangChips(){
+  const el = document.getElementById('langChips');
+  el.innerHTML = '';
+  LANGUAGES.forEach((l,i) => {
+    const b = document.createElement('button');
+    b.className = 'count-chip';
+    b.textContent = l.label;
+    b.onclick = () => { kit.language = l.code; setActiveChip('langChips', i); saveKit(); };
+    el.appendChild(b);
+  });
+}
+function setActiveChip(containerId, activeValue){
+  const chips = document.querySelectorAll('#' + containerId + ' .count-chip');
+  chips.forEach((b,i) => {
+    const match = containerId === 'langChips' ? i === activeValue : parseInt(b.textContent) === activeValue;
+    b.classList.toggle('on', match);
+  });
+}
+buildCountChips('fcCountChips', [5,10,15,20,25], 'fcCount');
+buildCountChips('quizCountChips', [5,10,15,20,25,30,35,40], 'quizCount');
+
+/* ================= Claude API ================= */
+async function askClaude(systemPrompt, userText){
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system: systemPrompt, messages:[{role:"user", content:userText}] })
+  });
+  if(!response.ok) throw new Error('API request failed (' + response.status + ')');
+  const data = await response.json();
+  const text = data.content.map(b => b.text || '').join('');
+  const cleaned = text.replace(/```json/g,'').replace(/```/g,'').trim();
+  return JSON.parse(cleaned);
+}
+function truncate(str, n){ return str.length > n ? str.slice(0,n) : str; }
+function langInstruction(){
+  const lang = LANGUAGES.find(l => l.code === kit.language) || LANGUAGES[0];
+  if(lang.code === 'source') return "Write your output in the same language as the source material.";
+  return `Regardless of what language the source material is written in, write your ENTIRE output — every question, answer, and explanation — in ${lang.label}. Do not mix in any other language.`;
+}
+const MATH_NOTE = "If the material involves math, physics, or chemistry notation, write it in LaTeX using $...$ for inline and $$...$$ for block expressions. For genuinely complex or technical concepts, keep language clear and add a short plain-English analogy where it helps understanding — don't oversimplify to the point of being wrong.";
+
+async function generateFlashcards(total, statusEl){
+  const batchSize = 5, batches = Math.ceil(total / batchSize);
+  let collected = [];
+  for(let b=0; b<batches; b++){
+    const want = Math.min(batchSize, total - collected.length);
+    statusEl.textContent = `Writing flashcards… (${collected.length}/${total})`;
+    const avoid = collected.map(c => c.front).join(' | ');
+    const sys = `You are a study assistant creating flashcards from course material. Return ONLY valid JSON (no markdown fences, no preamble): an array of exactly ${want} objects shaped {"front": string, "back": string}. Cover distinct concepts, grounded strictly in the material. ${avoid ? 'Do not repeat these already-covered fronts: ' + avoid : ''} ${langInstruction()} ${MATH_NOTE}`;
+    collected = collected.concat(await askClaude(sys, truncate(kit.sourceText, 15000)));
+  }
+  return collected.slice(0, total);
+}
+async function generateQuiz(total, statusEl){
+  const batchSize = 5, batches = Math.ceil(total / batchSize);
+  let collected = [];
+  for(let b=0; b<batches; b++){
+    const want = Math.min(batchSize, total - collected.length);
+    statusEl.textContent = `Building the quiz… (${collected.length}/${total})`;
+    const avoid = collected.map(c => c.question).join(' | ');
+    const sys = `You are a study assistant creating a multiple-choice quiz from course material. Return ONLY valid JSON (no markdown fences, no preamble): an array of exactly ${want} objects shaped {"question": string, "options": [string,string,string,string], "correctIndex": number, "explanation": string}. Grounded strictly in the material, distractors plausible, explanation under 30 words. ${avoid ? 'Do not repeat these already-covered questions: ' + avoid : ''} ${langInstruction()} ${MATH_NOTE}`;
+    collected = collected.concat(await askClaude(sys, truncate(kit.sourceText, 15000)));
+  }
+  return collected.slice(0, total);
+}
+async function generateRecap(statusEl){
+  statusEl.textContent = 'Writing the recap…';
+  const sys = `You are a study assistant. Return ONLY valid JSON (no markdown fences, no preamble) shaped {"title": string, "summary": string, "keyPoints": [string,...], "commonMistakes": [string,...]}. "summary" is 2-4 sentences overviewing the material. "keyPoints" is 5-8 concise, ordered takeaways. "commonMistakes" is 2-4 short warnings about typical errors (empty array if not applicable). ${langInstruction()} ${MATH_NOTE}`;
+  return await askClaude(sys, truncate(kit.sourceText, 15000));
+}
+
+document.getElementById('generateBtn').onclick = async () => {
+  const statusEl = document.getElementById('status');
+  const btn = document.getElementById('generateBtn');
+  kit.sourceText = sourceText.value.trim();
+  if(kit.sourceText.length < 40){
+    statusEl.textContent = 'Add a bit more course material first — at least a few sentences.';
+    statusEl.className = 'status err';
+    return;
+  }
+  btn.disabled = true;
+  statusEl.className = 'status';
+  try{
+    kit.flashcards = await generateFlashcards(kit.fcCount, statusEl);
+    kit.quiz = await generateQuiz(kit.quizCount, statusEl);
+    kit.recap = await generateRecap(statusEl);
+    kit.recapHtml = null;
+    kit.generated = true;
+    kit.progress = { learned:[], stillLearning:[], quizBest:null, quizLast:null };
+
+    // Decide the chapter this belongs to before touching any UI state.
+    const isNewChapter = !currentChapterId;
+    const targetChapterId = isNewChapter ? ('c' + Date.now()) : currentChapterId;
+
+    statusEl.textContent = 'Saving your study kit…';
+    const saved = await storageSet(kitKey(currentFolderId, targetChapterId), JSON.stringify(kitForPersist(kit)));
+    if(!saved){
+      statusEl.textContent = "Couldn't save this study kit — your browser storage may be full. Try deleting an old chapter, or freeing up space, then generate again.";
+      statusEl.className = 'status err';
+      btn.disabled = false;
+      return;
+    }
+
+    if(isNewChapter){
+      currentChapterId = targetChapterId;
+      pendingGeneratedResult = { suggestedName: (kit.recap && kit.recap.title) ? kit.recap.title : ('Chapter ' + (currentChapters.length + 1)) };
+      statusEl.textContent = 'Done — name your chapter to finish.';
+      btn.disabled = false;
+      openChapterModal('create', null);
+    } else {
+      const c = currentChapters.find(x => x.id === currentChapterId);
+      if(c){ c.cardCount = kit.flashcards.length; c.quizCount = kit.quiz.length; await saveChapters(); }
+      statusEl.textContent = 'Done — your study kit is ready.';
+      btn.disabled = false;
+      showStudyForCurrentKit();
+      showView('study');
+    }
+  }catch(e){
+    statusEl.textContent = 'Something went wrong generating your study kit: ' + e.message + '. Try again.';
+    statusEl.className = 'status err';
+    btn.disabled = false;
+  }
+};
+
+async function finalizeNewChapter(name){
+  currentChapters.push({ id: currentChapterId, name, createdAt: Date.now(), cardCount: kit.flashcards.length, quizCount: kit.quiz.length });
+  await saveChapters();
+  const f = folders.find(x => x.id === currentFolderId);
+  if(f){ f.chapterCount = currentChapters.length; saveFolders(); }
+  pendingGeneratedResult = null;
+  showStudyForCurrentKit();
+  showView('study');
+}
+
+/* ================= Tabs ================= */
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('on', b.dataset.panel === name));
+  document.querySelectorAll('.panel-inner').forEach(p => p.classList.toggle('on', p.id === 'panel-' + name));
+  if(name === 'progress') renderProgressStats();
+}
+document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.panel)));
+
+/* ================= Math rendering ================= */
+function renderMath(el){
+  if(!window.renderMathInElement) return;
+  if(!/\$|\\\(|\\\[/.test(el.textContent)) return;
+  renderMathInElement(el, {
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false},
+      {left:'\\[', right:'\\]', display:true}
+    ],
+    throwOnError:false
+  });
+}
+
+/* ================= Flashcards ================= */
+let fcIndex = 0, fcFilterLearning = false;
+const fcFrontEl = document.getElementById('fcFront');
+const fcBackEl = document.getElementById('fcBack');
+const fcCounterEl = document.getElementById('fcCounter');
+const fcStarEl = document.getElementById('fcStar');
+const fcCardEl = document.getElementById('fcCard');
+
+function renderFlashcards(){
+  document.getElementById('fcBadge').textContent = kit.flashcards.length;
+  fcIndex = 0; fcFilterLearning = false;
+  document.getElementById('fcFilterToggle').classList.remove('on');
+  updateMasteryBar();
+  showCard();
+}
+function currentFcList(){
+  if(!fcFilterLearning) return kit.flashcards.map((c,i)=>i);
+  return kit.flashcards.map((c,i)=>i).filter(i => !kit.progress.learned.includes(i));
+}
+function showCard(){
+  const list = currentFcList();
+  if(list.length === 0){
+    fcFrontEl.textContent = kit.flashcards.length ? "You've mastered every card in this set." : "No flashcards yet.";
+    fcBackEl.textContent = kit.flashcards.length ? "Switch off the filter to review everything again." : "";
+    fcCounterEl.textContent = '0 remaining';
+    return;
+  }
+  if(fcIndex >= list.length) fcIndex = 0;
+  const realIndex = list[fcIndex];
+  const c = kit.flashcards[realIndex];
+  fcFrontEl.textContent = c.front;
+  fcBackEl.textContent = c.back;
+  renderMath(fcFrontEl); renderMath(fcBackEl);
+  fcCounterEl.textContent = `Card ${fcIndex+1} of ${list.length}${fcFilterLearning ? ' (still learning)' : ''}`;
+  fcStarEl.textContent = kit.progress.learned.includes(realIndex) ? '✓' : '';
+  fcCardEl.classList.remove('flipped');
+  document.getElementById('fcMarkLearning').classList.toggle('active', kit.progress.stillLearning.includes(realIndex));
+  document.getElementById('fcMarkGot').classList.toggle('active', kit.progress.learned.includes(realIndex));
+}
+function updateMasteryBar(){
+  const total = kit.flashcards.length || 1;
+  document.getElementById('fcBarFill').style.width = (kit.progress.learned.length/total*100) + '%';
+}
+fcCardEl.onclick = () => fcCardEl.classList.toggle('flipped');
+document.getElementById('fcNext').onclick = () => { const l = currentFcList(); fcIndex = (fcIndex+1) % Math.max(l.length,1); showCard(); };
+document.getElementById('fcPrev').onclick = () => { const l = currentFcList(); fcIndex = (fcIndex-1+Math.max(l.length,1)) % Math.max(l.length,1); showCard(); };
+document.getElementById('fcShuffle').onclick = () => {
+  for(let i=kit.flashcards.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [kit.flashcards[i], kit.flashcards[j]] = [kit.flashcards[j], kit.flashcards[i]]; }
+  fcIndex = 0; showCard(); saveKit();
+};
+document.getElementById('fcFilterToggle').onclick = (e) => {
+  fcFilterLearning = !fcFilterLearning;
+  e.target.classList.toggle('on', fcFilterLearning);
+  fcIndex = 0; showCard();
+};
+function markCard(status){
+  const list = currentFcList();
+  if(!list.length) return;
+  const realIndex = list[fcIndex];
+  kit.progress.learned = kit.progress.learned.filter(i => i !== realIndex);
+  kit.progress.stillLearning = kit.progress.stillLearning.filter(i => i !== realIndex);
+  if(status === 'got') kit.progress.learned.push(realIndex);
+  if(status === 'learning') kit.progress.stillLearning.push(realIndex);
+  updateMasteryBar(); showCard(); renderProgressStats(); saveKit();
+  document.getElementById('fcNext').click();
+}
+document.getElementById('fcMarkGot').onclick = () => markCard('got');
+document.getElementById('fcMarkLearning').onclick = () => markCard('learning');
+document.addEventListener('keydown', (e) => {
+  if(!document.getElementById('panel-flash').classList.contains('on') || !document.getElementById('view-study').classList.contains('on')) return;
+  if(e.target.tagName === 'TEXTAREA') return;
+  if(e.code === 'Space'){ e.preventDefault(); fcCardEl.classList.toggle('flipped'); }
+  if(e.key === 'ArrowRight') document.getElementById('fcNext').click();
+  if(e.key === 'ArrowLeft') document.getElementById('fcPrev').click();
+  if(e.key.toLowerCase() === 'g') markCard('got');
+  if(e.key.toLowerCase() === 'l') markCard('learning');
+});
+
+/* ================= Quiz ================= */
+let quizIndex = 0, quizScore = 0, quizAnswered = false;
+function renderQuiz(){
+  document.getElementById('quizBadge').textContent = kit.quiz.length;
+  quizIndex = 0; quizScore = 0;
+  showQuestion();
+}
+function showQuestion(){
+  quizAnswered = false;
+  const el = document.getElementById('quizContent');
+  if(!kit.quiz.length){ el.innerHTML = ''; return; }
+  if(quizIndex >= kit.quiz.length){
+    const pct = Math.round((quizScore/kit.quiz.length)*100);
+    kit.progress.quizLast = pct;
+    if(kit.progress.quizBest === null || pct > kit.progress.quizBest) kit.progress.quizBest = pct;
+    saveKit(); renderProgressStats();
+    el.innerHTML = `<div class="q-result"><div class="big">${quizScore}/${kit.quiz.length}</div><p>You got ${quizScore} of ${kit.quiz.length} right (${pct}%).</p><button class="primary-btn" id="quizRetry" style="margin-top:14px;">Retake quiz</button></div>`;
+    document.getElementById('quizRetry').onclick = () => { quizIndex=0; quizScore=0; showQuestion(); };
+    return;
+  }
+  const q = kit.quiz[quizIndex];
+  el.innerHTML = `
+    <div class="q-progress"><div class="q-progress-bar" style="width:${(quizIndex/kit.quiz.length)*100}%"></div></div>
+    <div class="q-count">Question ${quizIndex+1} of ${kit.quiz.length}</div>
+    <div class="q-question" id="qQuestionText"></div>
+    <div class="q-options">${q.options.map((opt,i)=>`<button class="q-opt" data-i="${i}"><span class="k">${i+1}</span><span class="opt-text"></span></button>`).join('')}</div>
+    <div class="q-explain" id="qExplain"></div>
+    <div><button class="primary-btn q-next" id="qNext" style="display:none;">Next</button></div>
+  `;
+  document.getElementById('qQuestionText').textContent = q.question;
+  el.querySelectorAll('.q-opt').forEach((btn,i) => { btn.querySelector('.opt-text').textContent = q.options[i]; });
+  renderMath(el);
+  el.querySelectorAll('.q-opt').forEach(btn => {
+    btn.onclick = () => {
+      if(quizAnswered) return;
+      quizAnswered = true;
+      const chosen = parseInt(btn.dataset.i);
+      el.querySelectorAll('.q-opt').forEach(b => b.disabled = true);
+      if(chosen === q.correctIndex){ btn.classList.add('correct'); quizScore++; }
+      else{ btn.classList.add('wrong'); el.querySelector(`.q-opt[data-i="${q.correctIndex}"]`).classList.add('correct'); }
+      const ex = document.getElementById('qExplain');
+      ex.textContent = q.explanation; ex.classList.add('on'); renderMath(ex);
+      document.getElementById('qNext').style.display = 'inline-block';
+    };
+  });
+  document.getElementById('qNext').onclick = () => { quizIndex++; showQuestion(); };
+}
+document.addEventListener('keydown', (e) => {
+  if(!document.getElementById('panel-quiz').classList.contains('on') || !document.getElementById('view-study').classList.contains('on')) return;
+  if(e.target.tagName === 'TEXTAREA') return;
+  if(['1','2','3','4'].includes(e.key)){
+    const opts = document.querySelectorAll('.q-opt');
+    const idx = parseInt(e.key)-1;
+    if(opts[idx] && !opts[idx].disabled) opts[idx].click();
+  }
+  if(e.code === 'Space' || e.key === 'Enter'){
+    const next = document.getElementById('qNext');
+    if(next && next.style.display !== 'none') next.click();
+  }
+});
+
+/* ================= Recap ================= */
+function renderRecap(){
+  const body = document.getElementById('recapBody');
+  if(!kit.recap){ body.innerHTML = ''; return; }
+  if(kit.recapHtml){
+    body.innerHTML = kit.recapHtml;
+  } else {
+    const mistakesHtml = (kit.recap.commonMistakes && kit.recap.commonMistakes.length)
+      ? `<div class="recap-section-label">Watch out for</div><ul class="recap-mistakes">${kit.recap.commonMistakes.map(m=>`<li>${escapeHtml(m)}</li>`).join('')}</ul>` : '';
+    body.innerHTML = `
+      <div class="recap-title">${escapeHtml(kit.recap.title)}</div>
+      <div class="recap-summary">${escapeHtml(kit.recap.summary)}</div>
+      <div class="recap-section-label">Key points</div>
+      <ul class="recap-points">${kit.recap.keyPoints.map(p=>`<li>${escapeHtml(p)}</li>`).join('')}</ul>
+      ${mistakesHtml}
+    `;
+    kit.recapHtml = body.innerHTML;
+    saveKit();
+  }
+  renderMath(body);
+}
+const hlToolbar = document.getElementById('hlToolbar');
+let activeRange = null;
+const recapBody = document.getElementById('recapBody');
+recapBody.addEventListener('mouseup', handleSelection);
+recapBody.addEventListener('touchend', handleSelection);
+function handleSelection(){
+  setTimeout(() => {
+    const sel = window.getSelection();
+    if(!sel || sel.isCollapsed || sel.toString().trim() === ''){ hlToolbar.style.display='none'; return; }
+    const range = sel.getRangeAt(0);
+    if(!recapBody.contains(range.commonAncestorContainer)){ hlToolbar.style.display='none'; return; }
+    activeRange = range;
+    const rect = range.getBoundingClientRect();
+    hlToolbar.style.display = 'flex';
+    hlToolbar.style.top = Math.max(8, rect.top - 46) + 'px';
+    hlToolbar.style.left = Math.max(8, rect.left + rect.width/2 - 70) + 'px';
+  }, 5);
+}
+function wrapRange(range, tag, className){
+  const mark = document.createElement(tag);
+  mark.className = className;
+  try{ range.surroundContents(mark); }
+  catch(e){ const contents = range.extractContents(); mark.appendChild(contents); range.insertNode(mark); }
+}
+document.getElementById('hlHighlightBtn').onclick = () => { if(activeRange){ wrapRange(activeRange, 'mark', 'hl'); finishHighlight(); } };
+document.getElementById('hlUnderlineBtn').onclick = () => { if(activeRange){ wrapRange(activeRange, 'span', 'ul'); finishHighlight(); } };
+document.getElementById('hlClearBtn').onclick = () => {
+  if(!activeRange) return;
+  recapBody.querySelectorAll('mark.hl, span.ul').forEach(el => { if(activeRange.intersectsNode(el)) el.replaceWith(...el.childNodes); });
+  recapBody.normalize();
+  finishHighlight();
+};
+function finishHighlight(){
+  hlToolbar.style.display = 'none';
+  window.getSelection().removeAllRanges();
+  kit.recapHtml = recapBody.innerHTML;
+  saveKit();
+  renderMath(recapBody);
+}
+recapBody.addEventListener('click', (e) => {
+  if(window.getSelection().toString() !== '') return;
+  const el = e.target.closest('mark.hl, span.ul');
+  if(el){ el.replaceWith(...el.childNodes); recapBody.normalize(); finishHighlight(); }
+});
+document.addEventListener('mousedown', (e) => { if(!hlToolbar.contains(e.target)) hlToolbar.style.display='none'; });
+
+/* ================= Progress ================= */
+function renderProgressStats(){
+  document.getElementById('statMastered').textContent = `${kit.progress.learned.length}/${kit.flashcards.length}`;
+  document.getElementById('statQuizBest').textContent = kit.progress.quizBest !== null ? kit.progress.quizBest + '%' : '—';
+  document.getElementById('statQuizLast').textContent = kit.progress.quizLast !== null ? kit.progress.quizLast + '%' : '—';
+  document.getElementById('statStreak').textContent = globalProgress.streak;
+}
+document.getElementById('clearProgressBtn').onclick = () => {
+  if(!confirm('Reset mastery and quiz scores for this chapter?')) return;
+  kit.progress = { learned:[], stillLearning:[], quizBest:null, quizLast:null };
+  saveKit();
+  updateMasteryBar(); showCard(); renderProgressStats();
+};
+
+/* ================= Settings: dark mode, accent, font ================= */
+function applySettings(){
+  document.body.classList.toggle('dark', !!settings.dark);
+  document.getElementById('darkModeToggle').checked = !!settings.dark;
+  applyAccent(settings.accent || '#C6900F', false);
+  document.getElementById('customAccentInput').value = settings.accent || '#C6900F';
+  if(settings.fontDataUrl && settings.fontName){
+    loadCustomFont(settings.fontName, settings.fontDataUrl, false);
+  }
+}
+function mix(hex, target, amt){
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+  const t = target === 'black' ? 0 : 255;
+  const nr = Math.round(r + (t-r)*amt), ng = Math.round(g + (t-g)*amt), nb = Math.round(b + (t-b)*amt);
+  return '#' + [nr,ng,nb].map(v => v.toString(16).padStart(2,'0')).join('');
+}
+function applyAccent(hex, save){
+  document.documentElement.style.setProperty('--yellow', hex);
+  document.documentElement.style.setProperty('--yellow-deep', mix(hex,'black',0.22));
+  document.documentElement.style.setProperty('--yellow-soft', mix(hex,'white',0.82));
+  settings.accent = hex;
+  document.querySelectorAll('.swatch-btn[data-accent]').forEach(b => b.classList.toggle('on', b.dataset.accent.toLowerCase() === hex.toLowerCase()));
+  if(save !== false) saveSettings();
+}
+function buildAccentSwatches(){
+  const el = document.getElementById('accentSwatches');
+  el.innerHTML = '';
+  FOLDER_COLORS.forEach(c => {
+    const b = document.createElement('button');
+    b.type='button'; b.className='swatch-btn'; b.style.background=c; b.dataset.accent = c;
+    b.onclick = () => { applyAccent(c, true); document.getElementById('customAccentInput').value = c; };
+    el.appendChild(b);
+  });
+}
+document.getElementById('customAccentInput').addEventListener('input', (e) => applyAccent(e.target.value, true));
+document.getElementById('darkModeToggle').addEventListener('change', (e) => {
+  settings.dark = e.target.checked;
+  document.body.classList.toggle('dark', settings.dark);
+  saveSettings();
+});
+function loadCustomFont(name, dataUrl, save){
+  try{
+    const face = new FontFace(name, `url(${dataUrl})`);
+    face.load().then(loaded => {
+      document.fonts.add(loaded);
+      document.documentElement.style.setProperty('--font-body', `'${name}', sans-serif`);
+      document.getElementById('currentFontName').textContent = name;
+    }).catch(() => { console.warn('Could not load the uploaded font.'); });
+  }catch(e){ console.warn('Font loading failed', e); }
+  if(save !== false){ settings.fontName = name; settings.fontDataUrl = dataUrl; saveSettings(); }
+}
+document.getElementById('fontUploadBtn').onclick = () => document.getElementById('fontUpload').click();
+document.getElementById('fontUpload').onchange = async () => {
+  const file = document.getElementById('fontUpload').files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = reader.result;
+    const name = file.name.replace(/\.[^.]+$/,'').replace(/[^a-zA-Z0-9]/g,'') || 'CustomFont';
+    const tooLarge = dataUrl.length > 4 * 1024 * 1024;
+    loadCustomFont(name, dataUrl, !tooLarge);
+    if(tooLarge) console.warn('Font applied for this session only — file too large to save persistently.');
+  };
+  reader.readAsDataURL(file);
+};
+document.getElementById('fontResetBtn').onclick = () => {
+  document.documentElement.style.setProperty('--font-body', "'Inter', sans-serif");
+  document.getElementById('currentFontName').textContent = 'Default (Inter)';
+  settings.fontName = null; settings.fontDataUrl = null;
+  saveSettings();
+};
+
+document.getElementById('settingsBtn').onclick = () => document.getElementById('settingsOverlay').classList.add('on');
+document.getElementById('settingsClose').onclick = () => document.getElementById('settingsOverlay').classList.remove('on');
+document.getElementById('settingsOverlay').addEventListener('click', (e) => { if(e.target.id === 'settingsOverlay') e.currentTarget.classList.remove('on'); });
+document.getElementById('folderModalOverlay').addEventListener('click', (e) => { if(e.target.id === 'folderModalOverlay') e.currentTarget.classList.remove('on'); });
+document.getElementById('chapterModalOverlay').addEventListener('click', (e) => { if(e.target.id === 'chapterModalOverlay') e.currentTarget.classList.remove('on'); });
+
+/* ================= PWA: install prompt + service worker ================= */
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.getElementById('installBtn').style.display = 'inline-block';
+});
+document.getElementById('installBtn').onclick = async () => {
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  document.getElementById('installBtn').style.display = 'none';
+};
+window.addEventListener('appinstalled', () => { document.getElementById('installBtn').style.display = 'none'; });
+if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => { /* fine if unavailable, e.g. opened via file:// */ });
+  });
+}
+
+init();
+</script>
+</body>
+</html>
