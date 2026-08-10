@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Recap — your study system</title>
+<title>Recall — your study system</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#C6900F">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Recap">
+<meta name="apple-mobile-web-app-title" content="Recall">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
@@ -341,7 +341,7 @@ input:checked + .slider::before{transform:translateX(18px);}
       <button class="icon-btn" id="backBtn" style="display:none;" aria-label="Back">←</button>
       <div>
         <div class="eyebrow" id="breadcrumbEyebrow">Study system</div>
-        <h1 id="pageTitle">Recap. Recall. <span>Repeat.</span></h1>
+        <h1 id="pageTitle">Recall. Review. <span>Repeat.</span></h1>
       </div>
     </div>
     <div class="header-right">
@@ -721,7 +721,7 @@ function showView(name){
   if(name === 'home'){
     backBtn.style.display = 'none';
     eyebrow.textContent = 'Study system';
-    title.innerHTML = 'Recap. Recall. <span>Repeat.</span>';
+    title.innerHTML = 'Recall. Review. <span>Repeat.</span>';
     return;
   }
   backBtn.style.display = 'flex';
@@ -1073,7 +1073,7 @@ buildCountChips('quizCountChips', [5,10,15,20,25,30,35,40], 'quizCount');
    This app calls YOUR OWN proxy, not Anthropic directly — the proxy is what
    holds the real API key server-side, so the key never appears in this
    file or in your browser. Set this to your deployed Worker's URL. */
-const API_PROXY_URL = "https://recap-proxy.dragonettifederico508.workers.dev/"; // e.g. https://recap-proxy.your-subdomain.workers.dev
+const API_PROXY_URL = "https://recap-proxy.dragonettifederico508.workers.dev";
 
 async function askClaude(systemPrompt, userText){
   const response = await fetch(API_PROXY_URL, {
