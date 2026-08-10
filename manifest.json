@@ -1,6 +1,6 @@
 {
-  "name": "Recap — Study System",
-  "short_name": "Recap",
+  "name": "Recall — Study System",
+  "short_name": "Recall",
   "description": "Turn your course material into flashcards, quizzes, and recaps.",
   "start_url": "./",
   "scope": "./",
