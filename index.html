@@ -1075,17 +1075,25 @@ buildCountChips('quizCountChips', [5,10,15,20,25,30,35,40], 'quizCount');
    file or in your browser. Set this to your deployed Worker's URL. */
 const API_PROXY_URL = "https://recap-proxy.dragonettifederico508.workers.dev";
 
-async function askClaude(systemPrompt, userText){
+async function askClaude(systemPrompt, userText, attempt){
+  attempt = attempt || 1;
   const response = await fetch(API_PROXY_URL, {
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system: systemPrompt, messages:[{role:"user", content:userText}] })
+    body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:4096, system: systemPrompt, messages:[{role:"user", content:userText}] })
   });
   if(!response.ok) throw new Error('API request failed (' + response.status + ')');
   const data = await response.json();
   const text = data.content.map(b => b.text || '').join('');
   const cleaned = text.replace(/```json/g,'').replace(/```/g,'').trim();
-  return JSON.parse(cleaned);
+  try{
+    return JSON.parse(cleaned);
+  }catch(e){
+    // Occasionally a response gets cut off mid-JSON. One quiet retry usually
+    // fixes it rather than surfacing a scary error to the user.
+    if(attempt < 2) return askClaude(systemPrompt, userText, attempt + 1);
+    throw new Error('The AI response was malformed after a retry — try generating again.');
+  }
 }
 function truncate(str, n){ return str.length > n ? str.slice(0,n) : str; }
 function langInstruction(){
