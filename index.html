@@ -1075,6 +1075,19 @@ buildCountChips('quizCountChips', [5,10,15,20,25,30,35,40], 'quizCount');
    file or in your browser. Set this to your deployed Worker's URL. */
 const API_PROXY_URL = "https://recap-proxy.dragonettifederico508.workers.dev";
 
+function repairJsonText(text){
+  // LaTeX inside a JSON string (e.g. \alpha, \frac{}) contains raw backslashes
+  // that are NOT valid JSON escape sequences on their own — this is the most
+  // common cause of "Unterminated string" errors here. Any backslash not
+  // already followed by a valid JSON escape character gets doubled so it
+  // reads as a literal backslash instead of breaking the parser.
+  let fixed = text.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
+  // A literal line break or tab inside a string value is also invalid JSON
+  // even though it looks harmless — convert to a plain space either way.
+  fixed = fixed.replace(/\r\n|\r|\n/g, ' ').replace(/\t/g, ' ');
+  return fixed;
+}
+
 async function askClaude(systemPrompt, userText, attempt){
   attempt = attempt || 1;
   const response = await fetch(API_PROXY_URL, {
@@ -1089,10 +1102,12 @@ async function askClaude(systemPrompt, userText, attempt){
   try{
     return JSON.parse(cleaned);
   }catch(e){
-    // Occasionally a response gets cut off mid-JSON. One quiet retry usually
-    // fixes it rather than surfacing a scary error to the user.
-    if(attempt < 2) return askClaude(systemPrompt, userText, attempt + 1);
-    throw new Error('The AI response was malformed after a retry — try generating again.');
+    try{
+      return JSON.parse(repairJsonText(cleaned));
+    }catch(e2){
+      if(attempt < 2) return askClaude(systemPrompt, userText, attempt + 1);
+      throw new Error('The AI response was malformed after a retry — try generating again.');
+    }
   }
 }
 function truncate(str, n){ return str.length > n ? str.slice(0,n) : str; }
@@ -1101,7 +1116,7 @@ function langInstruction(){
   if(lang.code === 'source') return "Write your output in the same language as the source material.";
   return `Regardless of what language the source material is written in, write your ENTIRE output — every question, answer, and explanation — in ${lang.label}. Do not mix in any other language.`;
 }
-const MATH_NOTE = "If the material involves math, physics, or chemistry notation, write it in LaTeX using $...$ for inline and $$...$$ for block expressions. For genuinely complex or technical concepts, keep language clear and add a short plain-English analogy where it helps understanding — don't oversimplify to the point of being wrong.";
+const MATH_NOTE = "If the material involves math, physics, or chemistry notation, write it in LaTeX using $...$ for inline and $$...$$ for block expressions. For genuinely complex or technical concepts, keep language clear and add a short plain-English analogy where it helps understanding — don't oversimplify to the point of being wrong. Since this LaTeX sits inside a JSON string, escape every backslash as \\\\ so the JSON stays valid (write \\\\alpha, not \\alpha) — and never use a literal line break inside a string value; use a space instead.";
 
 async function generateFlashcards(total, statusEl){
   const batchSize = 5, batches = Math.ceil(total / batchSize);
