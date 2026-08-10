@@ -1073,7 +1073,7 @@ buildCountChips('quizCountChips', [5,10,15,20,25,30,35,40], 'quizCount');
    This app calls YOUR OWN proxy, not Anthropic directly — the proxy is what
    holds the real API key server-side, so the key never appears in this
    file or in your browser. Set this to your deployed Worker's URL. */
-const API_PROXY_URL = "https://dash.cloudflare.com/4882b232f8ea824b8f2739a339a49d39/workers/services/view/recap-proxy/production"; // e.g. https://recap-proxy.your-subdomain.workers.dev
+const API_PROXY_URL = "https://recap-proxy.dragonettifederico508.workers.dev/"; // e.g. https://recap-proxy.your-subdomain.workers.dev
 
 async function askClaude(systemPrompt, userText){
   const response = await fetch(API_PROXY_URL, {
