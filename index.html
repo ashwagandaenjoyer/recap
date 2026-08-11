@@ -298,11 +298,11 @@ span.ul{text-decoration:underline; text-decoration-color:var(--yellow-deep); tex
 .modal{background:var(--surface); border-radius:14px; padding:26px; width:340px; max-width:90vw; box-shadow:var(--shadow);}
 .modal h3{font-family:'Fraunces',serif; margin:0 0 16px; font-size:19px;}
 .modal p.hint{font-size:12.5px; color:var(--grey); margin:-10px 0 16px;}
-.modal input[type=text]{
+.modal input[type=text], .modal input[type=password]{
   width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:8px; font-family:var(--font-body);
   font-size:14px; background:var(--bg-soft); color:var(--ink); margin-bottom:16px;
 }
-.modal input[type=text]:focus{outline:none; border-color:var(--yellow-deep);}
+.modal input[type=text]:focus, .modal input[type=password]:focus{outline:none; border-color:var(--yellow-deep);}
 .color-swatches{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px;}
 .swatch-btn{width:28px; height:28px; border-radius:50%; border:2px solid transparent; cursor:pointer;}
 .swatch-btn.on{border-color:var(--ink);}
@@ -346,6 +346,7 @@ input:checked + .slider::before{transform:translateX(18px);}
     </div>
     <div class="header-right">
       <div class="streak" id="streakWidget"><span class="dot"></span><span>Streak: <b id="streakNum">0</b> day<span id="streakPlural">s</span></span></div>
+      <button class="ghost-btn" id="accountBtn">Log in</button>
       <button class="ghost-btn" id="installBtn" style="display:none;">Install app</button>
       <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙</button>
     </div>
@@ -496,6 +497,24 @@ input:checked + .slider::before{transform:translateX(18px);}
   </div>
 </div>
 
+<!-- Account: log in / sign up -->
+<div class="modal-overlay" id="authModalOverlay">
+  <div class="modal">
+    <div class="tab-strip" style="margin-bottom:18px;">
+      <button class="tab-btn on" id="authTabLogin" data-authtab="login" type="button">Log in</button>
+      <button class="tab-btn" id="authTabSignup" data-authtab="signup" type="button">Sign up</button>
+    </div>
+    <p class="hint" id="authHint">Log in to sync your folders across devices.</p>
+    <input type="text" id="authUsernameInput" placeholder="Username" autocomplete="username">
+    <input type="password" id="authPasswordInput" placeholder="Password" autocomplete="current-password">
+    <div class="status err" id="authError" style="margin:0 0 4px;"></div>
+    <div class="modal-actions">
+      <button class="ghost-btn" id="authModalCancel">Cancel</button>
+      <button class="primary-btn" id="authModalSubmit">Log in</button>
+    </div>
+  </div>
+</div>
+
 <!-- Settings drawer -->
 <div class="drawer-overlay" id="settingsOverlay">
   <div class="drawer">
@@ -631,6 +650,15 @@ let globalProgress = { streak:0, lastActiveDate:null };
 let setupReturnView = 'folder';
 let pendingGeneratedResult = null; // holds a freshly generated kit awaiting a chapter name
 
+/* Accounts: when logged in, folders/currentChapters/kit are loaded from and
+   saved back to accountData (synced to the server) instead of local
+   storage. Guest mode (no account) is unchanged from before. */
+let authToken = null;
+let currentUser = null;
+let accountData = null; // { folders, chaptersByFolder, kitsByChapter } — only populated when logged in
+function isLoggedIn(){ return !!authToken && !!currentUser; }
+function emptyAccountDataClient(){ return { folders:[], chaptersByFolder:{}, kitsByChapter:{} }; }
+
 function defaultKit(){
   return {
     sourceText:'', files:[], fcCount:10, quizCount:10, language:'en',
@@ -651,6 +679,12 @@ function saveKit(){
   if(!currentFolderId || !currentChapterId) return;
   clearTimeout(kitSaveTimer);
   kitSaveTimer = setTimeout(async () => {
+    if(isLoggedIn()){
+      accountData.kitsByChapter[currentFolderId + ':' + currentChapterId] = kitForPersist(kit);
+      const ok = await syncAccountDataNow();
+      if(!ok) showBanner('Could not sync your changes to your account — check your connection. They\u2019ll retry on your next edit.');
+      return;
+    }
     const ok = await storageSet(kitKey(currentFolderId, currentChapterId), JSON.stringify(kitForPersist(kit)));
     if(!ok) showBanner('Some changes could not be saved — your browser storage may be full or restricted.');
   }, 700);
@@ -659,10 +693,22 @@ function kitKey(folderId, chapterId){ return 'kit:' + folderId + ':' + chapterId
 function chaptersKey(folderId){ return 'chapters:' + folderId; }
 
 async function saveFolders(){
+  if(isLoggedIn()){
+    accountData.folders = folders;
+    const ok = await syncAccountDataNow();
+    if(!ok) showBanner('Could not sync your folders to your account — check your connection.');
+    return;
+  }
   const ok = await storageSet('folders', JSON.stringify(folders));
   if(!ok) showBanner('Could not save your folders — your browser storage may be full or restricted.');
 }
 async function saveChapters(){
+  if(isLoggedIn()){
+    accountData.chaptersByFolder[currentFolderId] = currentChapters;
+    const ok = await syncAccountDataNow();
+    if(!ok) showBanner('Could not sync this chapter list to your account — check your connection.');
+    return ok;
+  }
   const ok = await storageSet(chaptersKey(currentFolderId), JSON.stringify(currentChapters));
   if(!ok) showBanner('Could not save this chapter list — your browser storage may be full or restricted.');
   return ok;
@@ -675,9 +721,50 @@ async function loadJSON(key, fallback){
   try{ return JSON.parse(value); } catch(e){ return fallback; }
 }
 
+/* ================= Account sync ================= */
+let accountSyncTimer;
+async function syncAccountDataNow(){
+  try{
+    const res = await fetch(API_PROXY_URL + '/api/data', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + authToken},
+      body: JSON.stringify({ data: accountData })
+    });
+    return res.ok;
+  }catch(e){ return false; }
+}
+async function loadAccountData(){
+  try{
+    const res = await fetch(API_PROXY_URL + '/api/data', {
+      headers:{ 'Authorization':'Bearer ' + authToken }
+    });
+    if(!res.ok) return false;
+    const body = await res.json();
+    currentUser = body.user;
+    accountData = (body.data && Array.isArray(body.data.folders)) ? body.data : emptyAccountDataClient();
+    if(!accountData.chaptersByFolder) accountData.chaptersByFolder = {};
+    if(!accountData.kitsByChapter) accountData.kitsByChapter = {};
+    return true;
+  }catch(e){ return false; }
+}
+async function collectLocalDataForMigration(){
+  const localFolders = await loadJSON('folders', []);
+  if(!localFolders.length) return null;
+  const chaptersByFolder = {};
+  const kitsByChapter = {};
+  for(const f of localFolders){
+    const chapters = await loadJSON(chaptersKey(f.id), []);
+    chaptersByFolder[f.id] = chapters;
+    for(const c of chapters){
+      const k = await loadJSON(kitKey(f.id, c.id), null);
+      if(k) kitsByChapter[f.id + ':' + c.id] = k;
+    }
+  }
+  return { folders: localFolders, chaptersByFolder, kitsByChapter };
+}
+
 /* ================= Init ================= */
 async function init(){
-  folders = await loadJSON('folders', []);
   settings = await loadJSON('settings', settings);
   globalProgress = await loadJSON('global-progress', globalProgress);
   applySettings();
@@ -685,10 +772,25 @@ async function init(){
   buildLangChips();
   buildAccentSwatches();
   buildFolderColorSwatches();
+
+  authToken = localStorage.getItem('recap_auth_token');
+  if(authToken){
+    const ok = await loadAccountData();
+    if(ok){
+      folders = accountData.folders;
+    } else {
+      authToken = null;
+      localStorage.removeItem('recap_auth_token');
+      folders = await loadJSON('folders', []);
+    }
+  } else {
+    folders = await loadJSON('folders', []);
+  }
+  renderAuthUI();
   renderHome();
   showView('home');
-  if(storageMode === 'memory'){
-    showBanner('Your browser is blocking local storage, so nothing will be saved between visits.');
+  if(storageMode === 'memory' && !isLoggedIn()){
+    showBanner('Your browser is blocking local storage, so nothing will be saved between visits. Consider creating an account instead — it syncs to the cloud, not your browser.');
   }
 }
 
@@ -834,6 +936,14 @@ document.getElementById('folderModalSave').onclick = () => {
 };
 async function deleteFolder(id){
   if(!confirm('Delete this folder and every chapter inside it? This cannot be undone.')) return;
+  if(isLoggedIn()){
+    delete accountData.chaptersByFolder[id];
+    Object.keys(accountData.kitsByChapter).forEach(k => { if(k.startsWith(id + ':')) delete accountData.kitsByChapter[k]; });
+    folders = folders.filter(f => f.id !== id);
+    await saveFolders();
+    renderHome();
+    return;
+  }
   const chapters = await loadJSON(chaptersKey(id), []);
   for(const ch of chapters){ await storageDelete(kitKey(id, ch.id)); }
   await storageDelete(chaptersKey(id));
@@ -846,7 +956,12 @@ async function deleteFolder(id){
 async function openFolder(id){
   currentFolderId = id;
   currentChapterId = null;
-  currentChapters = await loadJSON(chaptersKey(id), []);
+  if(isLoggedIn()){
+    if(!accountData.chaptersByFolder[id]) accountData.chaptersByFolder[id] = [];
+    currentChapters = accountData.chaptersByFolder[id];
+  } else {
+    currentChapters = await loadJSON(chaptersKey(id), []);
+  }
   renderFolderView();
   showView('folder');
 }
@@ -880,7 +995,11 @@ function renderFolderView(){
 }
 async function deleteChapter(id){
   if(!confirm('Delete this chapter? Its flashcards, quiz, and recap will be gone for good.')) return;
-  await storageDelete(kitKey(currentFolderId, id));
+  if(isLoggedIn()){
+    delete accountData.kitsByChapter[currentFolderId + ':' + id];
+  } else {
+    await storageDelete(kitKey(currentFolderId, id));
+  }
   currentChapters = currentChapters.filter(c => c.id !== id);
   await saveChapters();
   const f = folders.find(x => x.id === currentFolderId);
@@ -926,7 +1045,13 @@ document.getElementById('chapterModalSave').onclick = () => {
 
 async function openChapter(id){
   currentChapterId = id;
-  kit = await loadJSON(kitKey(currentFolderId, id), defaultKit());
+  if(isLoggedIn()){
+    const key = currentFolderId + ':' + id;
+    const stored = accountData.kitsByChapter[key];
+    kit = stored ? Object.assign(defaultKit(), JSON.parse(JSON.stringify(stored))) : defaultKit();
+  } else {
+    kit = await loadJSON(kitKey(currentFolderId, id), defaultKit());
+  }
   showStudyForCurrentKit();
   showView('study');
 }
@@ -1172,9 +1297,20 @@ document.getElementById('generateBtn').onclick = async () => {
     const targetChapterId = isNewChapter ? ('c' + Date.now()) : currentChapterId;
 
     statusEl.textContent = 'Saving your study kit…';
-    const saved = await storageSet(kitKey(currentFolderId, targetChapterId), JSON.stringify(kitForPersist(kit)));
+    const kitPayload = kitForPersist(kit);
+    let saved;
+    if(isLoggedIn()){
+      const key = currentFolderId + ':' + targetChapterId;
+      accountData.kitsByChapter[key] = kitPayload;
+      saved = await syncAccountDataNow();
+      if(!saved) delete accountData.kitsByChapter[key]; // roll back so nothing phantom gets advertised
+    } else {
+      saved = await storageSet(kitKey(currentFolderId, targetChapterId), JSON.stringify(kitPayload));
+    }
     if(!saved){
-      statusEl.textContent = "Couldn't save this study kit — your browser storage may be full. Try deleting an old chapter, or freeing up space, then generate again.";
+      statusEl.textContent = isLoggedIn()
+        ? "Couldn't save this study kit to your account — check your connection and try again."
+        : "Couldn't save this study kit — your browser storage may be full. Try deleting an old chapter, or freeing up space, then generate again.";
       statusEl.className = 'status err';
       btn.disabled = false;
       return;
@@ -1525,6 +1661,113 @@ document.getElementById('fontResetBtn').onclick = () => {
   document.getElementById('currentFontName').textContent = 'Default (Inter)';
   settings.fontName = null; settings.fontDataUrl = null;
   saveSettings();
+};
+
+/* ================= Account UI ================= */
+let authMode = 'login'; // 'login' | 'signup'
+
+function renderAuthUI(){
+  const btn = document.getElementById('accountBtn');
+  if(isLoggedIn()){
+    btn.textContent = '@' + currentUser.username;
+  } else {
+    btn.textContent = 'Log in';
+  }
+}
+
+document.getElementById('accountBtn').onclick = async () => {
+  if(isLoggedIn()){
+    if(confirm('Log out of @' + currentUser.username + '?')){
+      try{ await fetch(API_PROXY_URL + '/api/logout', { method:'POST', headers:{'Authorization':'Bearer ' + authToken} }); }catch(e){}
+      authToken = null; currentUser = null; accountData = null;
+      localStorage.removeItem('recap_auth_token');
+      folders = await loadJSON('folders', []);
+      renderAuthUI();
+      renderHome();
+      showView('home');
+    }
+    return;
+  }
+  openAuthModal('login');
+};
+
+function openAuthModal(mode){
+  authMode = mode;
+  document.getElementById('authUsernameInput').value = '';
+  document.getElementById('authPasswordInput').value = '';
+  document.getElementById('authError').textContent = '';
+  setAuthTab(mode);
+  document.getElementById('authModalOverlay').classList.add('on');
+  document.getElementById('authUsernameInput').focus();
+}
+function setAuthTab(mode){
+  authMode = mode;
+  document.getElementById('authTabLogin').classList.toggle('on', mode === 'login');
+  document.getElementById('authTabSignup').classList.toggle('on', mode === 'signup');
+  document.getElementById('authHint').textContent = mode === 'login'
+    ? 'Log in to sync your folders across devices.'
+    : 'Creates a new account. If you already have folders saved on this device, they\u2019ll be uploaded to it automatically.';
+  document.getElementById('authModalSubmit').textContent = mode === 'login' ? 'Log in' : 'Sign up';
+  document.getElementById('authError').textContent = '';
+}
+document.getElementById('authTabLogin').onclick = () => setAuthTab('login');
+document.getElementById('authTabSignup').onclick = () => setAuthTab('signup');
+document.getElementById('authModalCancel').onclick = () => document.getElementById('authModalOverlay').classList.remove('on');
+document.getElementById('authModalOverlay').addEventListener('click', (e) => { if(e.target.id === 'authModalOverlay') e.currentTarget.classList.remove('on'); });
+
+document.getElementById('authModalSubmit').onclick = async () => {
+  const username = document.getElementById('authUsernameInput').value.trim();
+  const password = document.getElementById('authPasswordInput').value;
+  const errorEl = document.getElementById('authError');
+  const submitBtn = document.getElementById('authModalSubmit');
+  errorEl.textContent = '';
+  if(!username || !password){ errorEl.textContent = 'Enter a username and password.'; return; }
+
+  submitBtn.disabled = true;
+  try{
+    if(authMode === 'signup'){
+      const res = await fetch(API_PROXY_URL + '/api/signup', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      const body = await res.json();
+      if(!res.ok){ errorEl.textContent = body.error || 'Could not create that account.'; submitBtn.disabled = false; return; }
+
+      authToken = body.token;
+      localStorage.setItem('recap_auth_token', authToken);
+      currentUser = body.user;
+
+      const migrated = await collectLocalDataForMigration();
+      accountData = migrated || emptyAccountDataClient();
+      if(migrated){
+        const ok = await syncAccountDataNow();
+        if(!ok) showBanner('Signed up, but your existing local folders couldn\u2019t be uploaded yet — check your connection; it\u2019ll retry on your next change.');
+      }
+      folders = accountData.folders;
+    } else {
+      const res = await fetch(API_PROXY_URL + '/api/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      const body = await res.json();
+      if(!res.ok){ errorEl.textContent = body.error || 'Could not log in.'; submitBtn.disabled = false; return; }
+
+      authToken = body.token;
+      localStorage.setItem('recap_auth_token', authToken);
+      const ok = await loadAccountData();
+      if(!ok){ errorEl.textContent = 'Logged in, but could not load your data — check your connection and try again.'; submitBtn.disabled = false; return; }
+      folders = accountData.folders;
+    }
+
+    document.getElementById('authModalOverlay').classList.remove('on');
+    renderAuthUI();
+    renderHome();
+    showView('home');
+  }catch(e){
+    errorEl.textContent = 'Could not reach the server — check your connection.';
+  }finally{
+    submitBtn.disabled = false;
+  }
 };
 
 document.getElementById('settingsBtn').onclick = () => document.getElementById('settingsOverlay').classList.add('on');
