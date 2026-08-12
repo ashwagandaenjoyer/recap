@@ -324,6 +324,30 @@ input:checked + .slider{background:var(--yellow-deep);}
 input:checked + .slider::before{transform:translateX(18px);}
 #customAccentInput{width:100%; height:36px; border:1.5px solid var(--border); border-radius:8px; background:var(--bg-soft); cursor:pointer; margin-top:8px;}
 .font-current{font-size:13.5px; color:var(--ink); margin-bottom:12px;}
+.drawer input[type=text]{
+  width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:8px; font-family:var(--font-body);
+  font-size:14px; background:var(--bg-soft); color:var(--ink); margin-bottom:10px;
+}
+.drawer input[type=text]:focus{outline:none; border-color:var(--yellow-deep);}
+.friend-code-display{
+  font-family:'Space Mono',monospace; font-size:16px; letter-spacing:.12em; background:var(--yellow-soft);
+  color:var(--yellow-deep); padding:8px 12px; border-radius:8px; flex:1;
+}
+.friend-row{display:flex; justify-content:space-between; align-items:center; padding:9px 0; font-size:14px; border-top:1px solid var(--border);}
+.friend-row:first-child{border-top:none;}
+.friend-row .name{font-weight:500;}
+.friend-row .pending-label{color:var(--grey); font-size:11.5px; font-family:'Space Mono',monospace;}
+.friend-row-actions{display:flex; gap:6px;}
+.friend-row-actions button{font-family:'Space Mono',monospace; font-size:11px; padding:5px 10px; border-radius:6px; border:1px solid var(--border-strong); background:var(--surface); color:var(--grey); cursor:pointer;}
+.friend-row-actions button.accept{border-color:var(--green); color:var(--green);}
+.friend-row-actions button.decline{border-color:var(--wine); color:var(--wine);}
+.friend-empty{color:var(--grey); font-size:13px;}
+.send-friend-option{
+  display:block; width:100%; text-align:left; padding:11px 14px; margin-bottom:8px; border-radius:8px;
+  border:1.5px solid var(--border-strong); background:var(--surface); color:var(--ink); cursor:pointer; font-size:14px;
+}
+.send-friend-option:hover:not(:disabled){border-color:var(--yellow-deep);}
+.send-friend-option:disabled{opacity:.5; cursor:default;}
 .drawer-section .file-btn, .drawer-section .ghost-btn{margin-right:8px; margin-top:6px;}
 
 @media (max-width:600px){
@@ -346,6 +370,8 @@ input:checked + .slider::before{transform:translateX(18px);}
     </div>
     <div class="header-right">
       <div class="streak" id="streakWidget"><span class="dot"></span><span>Streak: <b id="streakNum">0</b> day<span id="streakPlural">s</span></span></div>
+      <button class="icon-btn" id="refreshDataBtn" style="display:none;" aria-label="Refresh your data">⟳</button>
+      <button class="ghost-btn" id="friendsBtn" style="display:none;">Friends</button>
       <button class="ghost-btn" id="accountBtn">Log in</button>
       <button class="ghost-btn" id="installBtn" style="display:none;">Install app</button>
       <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙</button>
@@ -412,6 +438,7 @@ input:checked + .slider::before{transform:translateX(18px);}
         <button class="tab-btn" data-panel="recap">Recap</button>
         <button class="tab-btn" data-panel="progress">Progress</button>
         <div class="spacer"></div>
+        <button class="ghost-btn" id="sendChapterBtn" style="display:none;">Send to friend</button>
         <button class="ghost-btn" id="editMaterialBtn">Edit material</button>
       </div>
       <div class="panel">
@@ -511,6 +538,51 @@ input:checked + .slider::before{transform:translateX(18px);}
     <div class="modal-actions">
       <button class="ghost-btn" id="authModalCancel">Cancel</button>
       <button class="primary-btn" id="authModalSubmit">Log in</button>
+    </div>
+  </div>
+</div>
+
+<!-- Friends -->
+<div class="drawer-overlay" id="friendsOverlay">
+  <div class="drawer">
+    <div class="drawer-header"><h3>Friends</h3><button class="icon-btn" id="friendsClose" aria-label="Close">×</button></div>
+    <div class="drawer-section">
+      <div class="drawer-label">Your friend code</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <div class="friend-code-display" id="myFriendCode">—</div>
+        <button class="ghost-btn" id="copyFriendCodeBtn" type="button">Copy</button>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">Add a friend</div>
+      <input type="text" id="friendIdentifierInput" placeholder="Username or friend code">
+      <button class="primary-btn" id="sendFriendRequestBtn" style="width:100%;" type="button">Send request</button>
+      <div class="status err" id="friendRequestError" style="margin-bottom:0;"></div>
+    </div>
+    <div class="drawer-section" id="incomingSection" style="display:none;">
+      <div class="drawer-label">Incoming requests</div>
+      <div id="incomingList"></div>
+    </div>
+    <div class="drawer-section" id="outgoingSection" style="display:none;">
+      <div class="drawer-label">Pending (sent by you)</div>
+      <div id="outgoingList"></div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">Your friends</div>
+      <div id="friendsList"><div class="friend-empty">No friends yet — add one above.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Send chapter to a friend -->
+<div class="modal-overlay" id="sendChapterModalOverlay">
+  <div class="modal">
+    <h3>Send to a friend</h3>
+    <p class="hint">They get a full copy in a "From @you" folder — no AI generation needed on their end.</p>
+    <div id="sendChapterFriendList"></div>
+    <div class="status" id="sendChapterStatus"></div>
+    <div class="modal-actions">
+      <button class="ghost-btn" id="sendChapterCancel" type="button">Close</button>
     </div>
   </div>
 </div>
@@ -1064,6 +1136,7 @@ function renderChapterContext(){
   const f = folders.find(x => x.id === currentFolderId);
   const c = currentChapters.find(x => x.id === currentChapterId);
   const el = document.getElementById('studyContextBar');
+  document.getElementById('sendChapterBtn').style.display = isLoggedIn() ? 'inline-block' : 'none';
   if(!f){ el.innerHTML = ''; return; }
   el.innerHTML = `<span class="context-dot" style="background:${f.color}"></span><span>${escapeHtml(f.name)}</span><span class="context-sep">▸</span><span>${c ? escapeHtml(c.name) : ''}</span>`;
 }
@@ -1668,10 +1741,16 @@ let authMode = 'login'; // 'login' | 'signup'
 
 function renderAuthUI(){
   const btn = document.getElementById('accountBtn');
+  const friendsBtn = document.getElementById('friendsBtn');
+  const refreshBtn = document.getElementById('refreshDataBtn');
   if(isLoggedIn()){
     btn.textContent = '@' + currentUser.username;
+    friendsBtn.style.display = 'inline-block';
+    refreshBtn.style.display = 'flex';
   } else {
     btn.textContent = 'Log in';
+    friendsBtn.style.display = 'none';
+    refreshBtn.style.display = 'none';
   }
 }
 
@@ -1769,6 +1848,148 @@ document.getElementById('authModalSubmit').onclick = async () => {
     submitBtn.disabled = false;
   }
 };
+
+/* ================= Friends ================= */
+let friendsCache = { friends: [], incoming: [], outgoing: [] };
+
+document.getElementById('refreshDataBtn').onclick = async () => {
+  if(!isLoggedIn()) return;
+  const ok = await loadAccountData();
+  if(ok){
+    folders = accountData.folders;
+    if(document.getElementById('view-home').classList.contains('on')) renderHome();
+  }
+};
+
+document.getElementById('friendsBtn').onclick = async () => {
+  document.getElementById('myFriendCode').textContent = currentUser.friendCode;
+  document.getElementById('friendsOverlay').classList.add('on');
+  await loadFriends();
+};
+document.getElementById('friendsClose').onclick = () => document.getElementById('friendsOverlay').classList.remove('on');
+document.getElementById('friendsOverlay').addEventListener('click', (e) => { if(e.target.id === 'friendsOverlay') e.currentTarget.classList.remove('on'); });
+document.getElementById('copyFriendCodeBtn').onclick = () => {
+  navigator.clipboard.writeText(currentUser.friendCode).then(() => {
+    const b = document.getElementById('copyFriendCodeBtn');
+    const old = b.textContent; b.textContent = 'Copied!';
+    setTimeout(() => { b.textContent = old; }, 1500);
+  }).catch(() => {});
+};
+
+async function loadFriends(){
+  try{
+    const res = await fetch(API_PROXY_URL + '/api/friends', { headers: { 'Authorization': 'Bearer ' + authToken } });
+    if(!res.ok) return false;
+    friendsCache = await res.json();
+    renderFriendsUI();
+    return true;
+  }catch(e){ return false; }
+}
+
+function renderFriendsUI(){
+  const incomingSection = document.getElementById('incomingSection');
+  const outgoingSection = document.getElementById('outgoingSection');
+  incomingSection.style.display = friendsCache.incoming.length ? 'block' : 'none';
+  outgoingSection.style.display = friendsCache.outgoing.length ? 'block' : 'none';
+
+  document.getElementById('incomingList').innerHTML = friendsCache.incoming.map(f => `
+    <div class="friend-row">
+      <span class="name">@${escapeHtml(f.username)}</span>
+      <div class="friend-row-actions">
+        <button class="accept" data-id="${f.requestId}" data-action="accept" type="button">Accept</button>
+        <button class="decline" data-id="${f.requestId}" data-action="decline" type="button">Decline</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('outgoingList').innerHTML = friendsCache.outgoing.map(f => `
+    <div class="friend-row"><span class="name">@${escapeHtml(f.username)}</span><span class="pending-label">Pending…</span></div>
+  `).join('');
+  document.getElementById('friendsList').innerHTML = friendsCache.friends.length
+    ? friendsCache.friends.map(f => `<div class="friend-row"><span class="name">@${escapeHtml(f.username)}</span></div>`).join('')
+    : '<div class="friend-empty">No friends yet — add one above.</div>';
+
+  document.querySelectorAll('#incomingList [data-action]').forEach(btn => {
+    btn.onclick = async () => {
+      const accept = btn.dataset.action === 'accept';
+      btn.disabled = true;
+      try{
+        await fetch(API_PROXY_URL + '/api/friends/respond', {
+          method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + authToken},
+          body: JSON.stringify({ requestId: parseInt(btn.dataset.id, 10), accept })
+        });
+        await loadFriends();
+      }catch(e){ btn.disabled = false; }
+    };
+  });
+}
+
+document.getElementById('sendFriendRequestBtn').onclick = async () => {
+  const input = document.getElementById('friendIdentifierInput');
+  const errorEl = document.getElementById('friendRequestError');
+  const identifier = input.value.trim();
+  errorEl.textContent = '';
+  if(!identifier){ errorEl.textContent = 'Enter a username or friend code.'; return; }
+  try{
+    const res = await fetch(API_PROXY_URL + '/api/friends/request', {
+      method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + authToken},
+      body: JSON.stringify({ identifier })
+    });
+    const body = await res.json();
+    if(!res.ok){ errorEl.textContent = body.error || 'Could not send that request.'; return; }
+    input.value = '';
+    await loadFriends();
+  }catch(e){ errorEl.textContent = 'Could not reach the server.'; }
+};
+
+/* Send an already-generated chapter to a friend */
+document.getElementById('sendChapterBtn').onclick = async () => {
+  document.getElementById('sendChapterModalOverlay').classList.add('on');
+  const list = document.getElementById('sendChapterFriendList');
+  const statusEl = document.getElementById('sendChapterStatus');
+  list.innerHTML = '';
+  statusEl.textContent = 'Loading your friends…';
+  statusEl.className = 'status';
+
+  const ok = await loadFriends();
+  if(!ok){ statusEl.textContent = 'Could not reach the server.'; statusEl.className = 'status err'; return; }
+  if(!friendsCache.friends.length){
+    statusEl.textContent = 'You don\u2019t have any friends yet — add one from the Friends panel first.';
+    return;
+  }
+  statusEl.textContent = '';
+  list.innerHTML = friendsCache.friends.map(f => `<button class="send-friend-option" data-username="${escapeHtml(f.username)}" type="button">@${escapeHtml(f.username)}</button>`).join('');
+  list.querySelectorAll('.send-friend-option').forEach(btn => {
+    btn.onclick = async () => {
+      list.querySelectorAll('.send-friend-option').forEach(b => b.disabled = true);
+      statusEl.textContent = 'Sending…';
+      statusEl.className = 'status';
+      const chapterMeta = currentChapters.find(c => c.id === currentChapterId);
+      try{
+        const res = await fetch(API_PROXY_URL + '/api/friends/send-chapter', {
+          method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + authToken},
+          body: JSON.stringify({
+            toUsername: btn.dataset.username,
+            chapterName: chapterMeta ? chapterMeta.name : 'Untitled chapter',
+            kitData: kitForPersist(kit)
+          })
+        });
+        const body = await res.json();
+        if(!res.ok){
+          statusEl.textContent = body.error || 'Could not send that chapter.';
+          statusEl.className = 'status err';
+          list.querySelectorAll('.send-friend-option').forEach(b => b.disabled = false);
+          return;
+        }
+        statusEl.textContent = 'Sent to @' + btn.dataset.username + '!';
+      }catch(e){
+        statusEl.textContent = 'Could not reach the server.';
+        statusEl.className = 'status err';
+        list.querySelectorAll('.send-friend-option').forEach(b => b.disabled = false);
+      }
+    };
+  });
+};
+document.getElementById('sendChapterCancel').onclick = () => document.getElementById('sendChapterModalOverlay').classList.remove('on');
+document.getElementById('sendChapterModalOverlay').addEventListener('click', (e) => { if(e.target.id === 'sendChapterModalOverlay') e.currentTarget.classList.remove('on'); });
 
 document.getElementById('settingsBtn').onclick = () => document.getElementById('settingsOverlay').classList.add('on');
 document.getElementById('settingsClose').onclick = () => document.getElementById('settingsOverlay').classList.remove('on');
