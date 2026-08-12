@@ -74,6 +74,8 @@ header{display:flex; justify-content:space-between; align-items:flex-end; gap:20
   color:var(--ink); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
 .icon-btn:hover{border-color:var(--yellow-deep);}
+.icon-btn.spinning{animation:recap-spin 0.8s linear infinite;}
+@keyframes recap-spin{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
 .eyebrow{font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--yellow-deep); margin-bottom:8px;}
 h1{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(26px,4.4vw,42px); margin:0; line-height:1.05; letter-spacing:-.01em;}
 h1 span{color:var(--yellow-deep); font-style:italic; font-weight:400;}
@@ -806,18 +808,32 @@ async function syncAccountDataNow(){
   }catch(e){ return false; }
 }
 async function loadAccountData(){
-  try{
-    const res = await fetch(API_PROXY_URL + '/api/data', {
-      headers:{ 'Authorization':'Bearer ' + authToken }
-    });
-    if(!res.ok) return false;
-    const body = await res.json();
-    currentUser = body.user;
-    accountData = (body.data && Array.isArray(body.data.folders)) ? body.data : emptyAccountDataClient();
-    if(!accountData.chaptersByFolder) accountData.chaptersByFolder = {};
-    if(!accountData.kitsByChapter) accountData.kitsByChapter = {};
-    return true;
-  }catch(e){ return false; }
+  // Returns 'ok' | 'unauthorized' | 'error'. Only 'unauthorized' should ever
+  // cause the saved login to be cleared — a network hiccup or a server
+  // error must NOT log the person out or silently fall back to old local
+  // data, since that's exactly what was causing random logouts.
+  for(let attempt = 1; attempt <= 2; attempt++){
+    try{
+      const res = await fetch(API_PROXY_URL + '/api/data', {
+        headers:{ 'Authorization':'Bearer ' + authToken }
+      });
+      if(res.status === 401) return 'unauthorized';
+      if(!res.ok){
+        if(attempt < 2) continue;
+        return 'error';
+      }
+      const body = await res.json();
+      currentUser = body.user;
+      accountData = (body.data && Array.isArray(body.data.folders)) ? body.data : emptyAccountDataClient();
+      if(!accountData.chaptersByFolder) accountData.chaptersByFolder = {};
+      if(!accountData.kitsByChapter) accountData.kitsByChapter = {};
+      return 'ok';
+    }catch(e){
+      if(attempt < 2) continue;
+      return 'error';
+    }
+  }
+  return 'error';
 }
 async function collectLocalDataForMigration(){
   const localFolders = await loadJSON('folders', []);
@@ -847,12 +863,17 @@ async function init(){
 
   authToken = localStorage.getItem('recap_auth_token');
   if(authToken){
-    const ok = await loadAccountData();
-    if(ok){
+    const result = await loadAccountData();
+    if(result === 'ok'){
       folders = accountData.folders;
-    } else {
+    } else if(result === 'unauthorized'){
       authToken = null;
       localStorage.removeItem('recap_auth_token');
+      folders = await loadJSON('folders', []);
+    } else {
+      // Transient failure — keep the saved token so a later reload can
+      // succeed. Show local data for now rather than logging anyone out.
+      showBanner('Could not reach your account just now — showing local data. Try the \u27f3 refresh button once you\u2019re back online.');
       folders = await loadJSON('folders', []);
     }
   } else {
@@ -1833,8 +1854,8 @@ document.getElementById('authModalSubmit').onclick = async () => {
 
       authToken = body.token;
       localStorage.setItem('recap_auth_token', authToken);
-      const ok = await loadAccountData();
-      if(!ok){ errorEl.textContent = 'Logged in, but could not load your data — check your connection and try again.'; submitBtn.disabled = false; return; }
+      const loadResult = await loadAccountData();
+      if(loadResult !== 'ok'){ errorEl.textContent = 'Logged in, but could not load your data — check your connection and try again.'; submitBtn.disabled = false; return; }
       folders = accountData.folders;
     }
 
@@ -1854,12 +1875,42 @@ let friendsCache = { friends: [], incoming: [], outgoing: [] };
 
 document.getElementById('refreshDataBtn').onclick = async () => {
   if(!isLoggedIn()) return;
-  const ok = await loadAccountData();
-  if(ok){
+  const btn = document.getElementById('refreshDataBtn');
+  btn.disabled = true;
+  btn.classList.add('spinning');
+  const result = await loadAccountData();
+  btn.classList.remove('spinning');
+  btn.disabled = false;
+
+  if(result === 'ok'){
     folders = accountData.folders;
-    if(document.getElementById('view-home').classList.contains('on')) renderHome();
+    const activeView = document.querySelector('.view.on').id;
+    if(activeView === 'view-home'){
+      renderHome();
+    } else if(activeView === 'view-folder' && currentFolderId){
+      currentChapters = accountData.chaptersByFolder[currentFolderId] || [];
+      renderFolderView();
+    }
+    flashRefreshFeedback('✓');
+  } else if(result === 'unauthorized'){
+    authToken = null; currentUser = null; accountData = null;
+    localStorage.removeItem('recap_auth_token');
+    folders = await loadJSON('folders', []);
+    renderAuthUI();
+    renderHome();
+    showView('home');
+    showBanner('Your session expired — please log in again.');
+  } else {
+    flashRefreshFeedback('!');
+    showBanner('Could not refresh — check your connection and try again.');
   }
 };
+function flashRefreshFeedback(symbol){
+  const btn = document.getElementById('refreshDataBtn');
+  const original = '⟳';
+  btn.textContent = symbol;
+  setTimeout(() => { btn.textContent = original; }, 900);
+}
 
 document.getElementById('friendsBtn').onclick = async () => {
   document.getElementById('myFriendCode').textContent = currentUser.friendCode;
