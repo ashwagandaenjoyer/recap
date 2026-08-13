@@ -284,6 +284,70 @@ span.ul{text-decoration:underline; text-decoration-color:var(--yellow-deep); tex
 .hl-toolbar button:hover{background:rgba(128,128,128,.25);}
 .hl-toolbar .swatch{width:10px;height:10px;border-radius:2px;background:var(--yellow);}
 
+/* ---------- Avatar + borders ---------- */
+.avatar-frame{position:relative; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.avatar-badge{width:24px; height:24px; border-radius:50%; background:var(--ink); color:var(--bg); display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:600; font-size:12px;}
+.avatar-frame-large{width:64px; height:64px;}
+.avatar-badge-large{width:56px; height:56px; font-size:24px;}
+.avatar-frame.border-bronze{box-shadow:0 0 0 3px #A9713A;}
+.avatar-frame.border-silver{box-shadow:0 0 0 3px #B8B8C0;}
+.avatar-frame.border-gold{box-shadow:0 0 0 3px #D9A93B, 0 0 10px rgba(217,169,59,.5);}
+.avatar-frame.border-dashed{box-shadow:none; border:2px dashed var(--ink);}
+.avatar-frame.border-double{box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--yellow-deep);}
+.avatar-frame.border-sparkle{box-shadow:0 0 0 3px var(--yellow); animation:recap-sparkle 1.6s ease-in-out infinite;}
+@keyframes recap-sparkle{ 0%,100%{box-shadow:0 0 0 3px var(--yellow);} 50%{box-shadow:0 0 0 3px var(--yellow), 0 0 12px 2px rgba(198,144,15,.7);} }
+.avatar-frame.border-fire{box-shadow:0 0 0 3px #E8734A; animation:recap-fire 1.2s ease-in-out infinite;}
+@keyframes recap-fire{ 0%,100%{box-shadow:0 0 0 3px #E8734A, 0 0 8px 2px rgba(232,115,74,.5);} 50%{box-shadow:0 0 0 3px #FFB020, 0 0 14px 4px rgba(255,110,40,.7);} }
+.avatar-frame.border-rainbow::before{
+  content:''; position:absolute; inset:-3px; border-radius:50%; z-index:-1;
+  background:conic-gradient(from 0deg, #E8734A, #D4A017, #3FAE8A, #2F6FA8, #7A5AA8, #B5384A, #E8734A);
+  animation:recap-rainbow 3s linear infinite;
+}
+@keyframes recap-rainbow{ to{ transform:rotate(360deg); } }
+
+/* ---------- Home banner strip ---------- */
+.home-banner-strip{height:10px; border-radius:6px; margin-bottom:24px; display:none;}
+.banner-stars{background-image:radial-gradient(circle, var(--yellow) 1.5px, transparent 1.5px); background-size:14px 14px; background-color:var(--bg-soft); display:block;}
+.banner-waves{background:repeating-linear-gradient(115deg, var(--yellow-soft) 0 10px, var(--bg-soft) 10px 20px); display:block;}
+.banner-sunsetgrad{background:linear-gradient(90deg, #E8734A, #D4A017, #E8734A); display:block;}
+.banner-confetti{background-color:var(--bg-soft); background-image:radial-gradient(circle,#E8734A 2px,transparent 2px), radial-gradient(circle,#2F8C87 2px,transparent 2px), radial-gradient(circle,var(--yellow) 2px,transparent 2px); background-size:24px 10px,30px 10px,20px 10px; background-position:0 0,10px 0,18px 0; display:block;}
+.banner-aurora{background:linear-gradient(90deg,#7A5AA8,#2F6FA8,#3F7A5D,#7A5AA8); background-size:200% 100%; animation:recap-aurora 6s ease infinite; display:block;}
+@keyframes recap-aurora{ 0%,100%{background-position:0% 50%;} 50%{background-position:100% 50%;} }
+
+/* ---------- Shop ---------- */
+.shop-item{display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--border);}
+.shop-item:first-child{border-top:none;}
+.shop-item-preview{width:28px; height:28px; border-radius:50%; flex-shrink:0;}
+.shop-item-info{flex:1; min-width:0;}
+.shop-item-name{font-size:13.5px; font-weight:500;}
+.shop-item-price{font-family:'Space Mono',monospace; font-size:11px; color:var(--grey);}
+.shop-item-btn{font-family:'Space Mono',monospace; font-size:11px; padding:7px 12px; border-radius:7px; border:1.5px solid var(--border-strong); background:var(--surface); color:var(--ink); cursor:pointer; flex-shrink:0;}
+.shop-item-btn.owned{border-color:var(--green); color:var(--green);}
+.shop-item-btn.equipped{background:var(--green); border-color:var(--green); color:#fff;}
+.shop-item-btn:disabled{opacity:.5; cursor:default;}
+
+/* ---------- Toasts ---------- */
+#toastHost{position:fixed; bottom:20px; right:20px; z-index:200; display:flex; flex-direction:column; gap:8px; align-items:flex-end; pointer-events:none;}
+.toast{background:var(--ink); color:var(--bg); font-family:'Space Mono',monospace; font-size:12.5px; padding:10px 16px; border-radius:9px; box-shadow:var(--shadow); opacity:0; transform:translateY(8px); transition:opacity .25s ease, transform .25s ease; max-width:260px;}
+.toast.on{opacity:1; transform:translateY(0);}
+.toast.success{background:var(--green);}
+.toast.error{background:var(--wine);}
+
+/* ---------- Study timer widget ---------- */
+#studyTimerWidget{
+  position:fixed; bottom:20px; right:20px; z-index:90; display:none;
+  background:var(--surface); border:1.5px solid var(--border); border-radius:16px;
+  padding:14px 18px; box-shadow:var(--shadow); width:190px; text-align:center;
+}
+#timerEncouragement{font-family:'Space Mono',monospace; font-size:11px; color:var(--yellow-deep); min-height:14px; margin-bottom:6px; opacity:0; transition:opacity .4s ease;}
+#timerEncouragement.on{opacity:1;}
+#timerDisplay{font-family:'Fraunces',serif; font-size:26px; font-weight:600; margin-bottom:10px;}
+#timerToggleBtn{width:100%; font-family:'Space Mono',monospace; font-size:12px; padding:9px; border-radius:8px; border:none; background:var(--yellow-deep); color:#fff; cursor:pointer;}
+#timerToggleBtn.running{background:var(--wine);}
+.timer-dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--wine); margin-right:6px; animation:recap-timerpulse 1.2s ease-in-out infinite;}
+@keyframes recap-timerpulse{ 0%,100%{opacity:1;} 50%{opacity:.3;} }
+@media (max-width:600px){ #studyTimerWidget{ bottom:12px; right:12px; width:160px; padding:12px 14px; } }
+
 /* ---------- Progress panel ---------- */
 .stats-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:24px;}
 .stat-card{background:var(--bg-soft); border:1px solid var(--border); border-radius:12px; padding:18px;}
@@ -374,7 +438,8 @@ input:checked + .slider::before{transform:translateX(18px);}
       <div class="streak" id="streakWidget"><span class="dot"></span><span>Streak: <b id="streakNum">0</b> day<span id="streakPlural">s</span></span></div>
       <button class="icon-btn" id="refreshDataBtn" style="display:none;" aria-label="Refresh your data">⟳</button>
       <button class="ghost-btn" id="friendsBtn" style="display:none;">Friends</button>
-      <button class="ghost-btn" id="accountBtn">Log in</button>
+      <button class="ghost-btn" id="shopBtn" style="display:none;">Shop</button>
+      <button class="ghost-btn" id="accountBtn" style="display:flex; align-items:center; gap:8px;">Log in</button>
       <button class="ghost-btn" id="installBtn" style="display:none;">Install app</button>
       <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙</button>
     </div>
@@ -384,6 +449,7 @@ input:checked + .slider::before{transform:translateX(18px);}
 
   <!-- HOME: folders -->
   <div class="view on" id="view-home">
+    <div class="home-banner-strip" id="homeBannerStrip"></div>
     <div class="card-grid" id="folderGrid"></div>
   </div>
 
@@ -618,6 +684,52 @@ input:checked + .slider::before{transform:translateX(18px);}
   <button id="hlClearBtn">Clear</button>
 </div>
 
+<!-- Profile -->
+<div class="drawer-overlay" id="profileOverlay">
+  <div class="drawer">
+    <div class="drawer-header"><h3>Your profile</h3><button class="icon-btn" id="profileClose" aria-label="Close">×</button></div>
+    <div class="drawer-section" style="text-align:center;">
+      <span class="avatar-frame avatar-frame-large" id="profileAvatarFrame" style="margin:0 auto;">
+        <span class="avatar-badge avatar-badge-large" id="profileAvatarInitial"></span>
+      </span>
+      <div style="font-family:'Fraunces',serif; font-size:19px; font-weight:600; margin-top:12px;" id="profileUsername"></div>
+      <div class="pending-label" id="profileLevelLabel" style="margin-top:4px;"></div>
+    </div>
+    <div class="drawer-section">
+      <div class="stats-grid" style="grid-template-columns:1fr 1fr; margin-bottom:0;">
+        <div class="stat-card"><div class="stat-num" id="profileCoins">0</div><div class="stat-label">Coins</div></div>
+        <div class="stat-card"><div class="stat-num" id="profilePoints">0</div><div class="stat-label">Points</div></div>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <button class="ghost-btn" id="profileLogoutBtn" style="width:100%;" type="button">Log out</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shop -->
+<div class="drawer-overlay" id="shopOverlay">
+  <div class="drawer">
+    <div class="drawer-header"><h3>Shop</h3><button class="icon-btn" id="shopClose" aria-label="Close">×</button></div>
+    <div class="friend-code-display" id="shopCoinsDisplay" style="text-align:center; margin-bottom:16px;">0 coins</div>
+    <div class="tab-strip" id="shopTabStrip">
+      <button class="tab-btn on" data-shoptab="theme" type="button">Themes</button>
+      <button class="tab-btn" data-shoptab="border" type="button">Borders</button>
+      <button class="tab-btn" data-shoptab="banner" type="button">Banners</button>
+    </div>
+    <div id="shopItemsGrid"></div>
+  </div>
+</div>
+
+<!-- Study timer -->
+<div id="studyTimerWidget">
+  <div id="timerEncouragement"></div>
+  <div id="timerDisplay">00:00</div>
+  <button id="timerToggleBtn" type="button">Start studying</button>
+</div>
+
+<div id="toastHost"></div>
+
 <script>
 /* ================= PDF worker =================
    Loaded as a same-origin blob to avoid cross-origin Worker restrictions.
@@ -737,7 +849,7 @@ function defaultKit(){
   return {
     sourceText:'', files:[], fcCount:10, quizCount:10, language:'en',
     flashcards:[], quiz:[], recap:null, recapHtml:null, generated:false,
-    progress:{ learned:[], stillLearning:[], quizBest:null, quizLast:null }
+    progress:{ learned:[], stillLearning:[], quizBest:null, quizLast:null, completionAwarded:false }
   };
 }
 function kitForPersist(k){
@@ -866,6 +978,8 @@ async function init(){
     const result = await loadAccountData();
     if(result === 'ok'){
       folders = accountData.folders;
+      await loadShopState();
+      await claimLoginReward();
     } else if(result === 'unauthorized'){
       authToken = null;
       localStorage.removeItem('recap_auth_token');
@@ -1384,7 +1498,7 @@ document.getElementById('generateBtn').onclick = async () => {
     kit.recap = await generateRecap(statusEl);
     kit.recapHtml = null;
     kit.generated = true;
-    kit.progress = { learned:[], stillLearning:[], quizBest:null, quizLast:null };
+    kit.progress = { learned:[], stillLearning:[], quizBest:null, quizLast:null, completionAwarded:false };
 
     // Decide the chapter this belongs to before touching any UI state.
     const isNewChapter = !currentChapterId;
@@ -1529,6 +1643,27 @@ function markCard(status){
   if(status === 'learning') kit.progress.stillLearning.push(realIndex);
   updateMasteryBar(); showCard(); renderProgressStats(); saveKit();
   document.getElementById('fcNext').click();
+
+  const fullyMastered = kit.flashcards.length > 0 && kit.progress.learned.length === kit.flashcards.length;
+  if(fullyMastered && !kit.progress.completionAwarded && isLoggedIn()){
+    kit.progress.completionAwarded = true;
+    saveKit();
+    awardCourseCompletion();
+  }
+}
+async function awardCourseCompletion(){
+  try{
+    const res = await fetch(API_PROXY_URL + '/api/reward/course-complete', {
+      method:'POST', headers:{ 'Authorization':'Bearer ' + authToken }
+    });
+    const body = await res.json();
+    if(res.ok){
+      shopState.points = body.points;
+      shopState.level = body.level;
+      showToast('🎉 Chapter mastered! +' + body.pointsAwarded + ' points', 'success');
+      renderProfileStats();
+    }
+  }catch(e){ /* not critical — silently skip if offline */ }
 }
 document.getElementById('fcMarkGot').onclick = () => markCard('got');
 document.getElementById('fcMarkLearning').onclick = () => markCard('learning');
@@ -1679,9 +1814,247 @@ function renderProgressStats(){
 }
 document.getElementById('clearProgressBtn').onclick = () => {
   if(!confirm('Reset mastery and quiz scores for this chapter?')) return;
-  kit.progress = { learned:[], stillLearning:[], quizBest:null, quizLast:null };
+  kit.progress = { learned:[], stillLearning:[], quizBest:null, quizLast:null, completionAwarded:false };
   saveKit();
   updateMasteryBar(); showCard(); renderProgressStats();
+};
+
+/* ================= Toasts ================= */
+function showToast(message, type){
+  const host = document.getElementById('toastHost');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.textContent = message;
+  host.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('on'));
+  setTimeout(() => {
+    el.classList.remove('on');
+    setTimeout(() => el.remove(), 300);
+  }, 3200);
+}
+
+/* ================= Shop + cosmetics ================= */
+let shopState = { coins:0, points:0, level:1, shop:{ ownedThemes:[], ownedBorders:[], ownedBanners:[], equipped:{theme:null,border:null,banner:null} }, catalog:{theme:[],border:[],banner:[]} };
+
+async function loadShopState(){
+  if(!isLoggedIn()) return false;
+  try{
+    const res = await fetch(API_PROXY_URL + '/api/shop', { headers:{ 'Authorization':'Bearer ' + authToken } });
+    if(!res.ok) return false;
+    shopState = await res.json();
+    applyEquippedCosmetics();
+    return true;
+  }catch(e){ return false; }
+}
+function applyEquippedCosmetics(){
+  if(shopState.shop.equipped.theme){
+    const item = (shopState.catalog.theme || []).find(t => t.id === shopState.shop.equipped.theme);
+    if(item) applyAccent(item.color, false);
+  }
+  renderHomeBanner();
+}
+function renderHomeBanner(){
+  const el = document.getElementById('homeBannerStrip');
+  el.className = 'home-banner-strip';
+  const banner = isLoggedIn() ? shopState.shop.equipped.banner : null;
+  if(banner) el.classList.add('banner-' + banner);
+}
+function avatarFrameClass(){
+  const b = isLoggedIn() ? shopState.shop.equipped.border : null;
+  return b ? ' border-' + b : '';
+}
+
+let activeShopTab = 'theme';
+document.querySelectorAll('#shopTabStrip .tab-btn').forEach(btn => {
+  btn.onclick = () => { activeShopTab = btn.dataset.shoptab; renderShopTabs(); renderShopItems(); };
+});
+function renderShopTabs(){
+  document.querySelectorAll('#shopTabStrip .tab-btn').forEach(b => b.classList.toggle('on', b.dataset.shoptab === activeShopTab));
+}
+function ownedKeyFor(cat){ return cat === 'theme' ? 'ownedThemes' : cat === 'border' ? 'ownedBorders' : 'ownedBanners'; }
+
+function renderShopItems(){
+  document.getElementById('shopCoinsDisplay').textContent = shopState.coins + ' coins';
+  const grid = document.getElementById('shopItemsGrid');
+  const items = shopState.catalog[activeShopTab] || [];
+  const ownedList = shopState.shop[ownedKeyFor(activeShopTab)] || [];
+  const equippedId = shopState.shop.equipped[activeShopTab];
+
+  grid.innerHTML = items.map(item => {
+    const owned = ownedList.includes(item.id);
+    const equipped = equippedId === item.id;
+    let preview;
+    if(activeShopTab === 'theme'){
+      preview = `<div class="shop-item-preview" style="background:${item.color}"></div>`;
+    } else if(activeShopTab === 'border'){
+      preview = `<span class="avatar-frame border-${item.id}"><span class="avatar-badge" style="width:20px;height:20px;font-size:10px;">A</span></span>`;
+    } else {
+      preview = `<div class="shop-item-preview banner-${item.id}" style="border-radius:6px; width:36px; height:20px;"></div>`;
+    }
+    let btnHtml;
+    if(equipped) btnHtml = `<button class="shop-item-btn equipped" data-action="unequip" data-cat="${activeShopTab}" data-id="${item.id}" type="button">Equipped</button>`;
+    else if(owned) btnHtml = `<button class="shop-item-btn owned" data-action="equip" data-cat="${activeShopTab}" data-id="${item.id}" type="button">Equip</button>`;
+    else btnHtml = `<button class="shop-item-btn" data-action="buy" data-cat="${activeShopTab}" data-id="${item.id}" type="button">${item.price} coins</button>`;
+    return `<div class="shop-item">${preview}<div class="shop-item-info"><div class="shop-item-name">${escapeHtml(item.name)}</div>${!owned ? `<div class="shop-item-price">${item.price} coins</div>` : ''}</div>${btnHtml}</div>`;
+  }).join('');
+
+  grid.querySelectorAll('[data-action]').forEach(btn => {
+    btn.onclick = () => handleShopAction(btn.dataset.action, btn.dataset.cat, btn.dataset.id, btn);
+  });
+}
+
+async function handleShopAction(action, category, itemId, btn){
+  btn.disabled = true;
+  try{
+    if(action === 'buy'){
+      const res = await fetch(API_PROXY_URL + '/api/shop/purchase', {
+        method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + authToken},
+        body: JSON.stringify({ category, itemId })
+      });
+      const body = await res.json();
+      if(!res.ok){ showToast(body.error || 'Could not purchase that.', 'error'); btn.disabled = false; return; }
+      shopState.coins = body.coins; shopState.shop = body.shop;
+      showToast('Purchased! 🎉', 'success');
+    } else {
+      const targetId = action === 'equip' ? itemId : null;
+      const res = await fetch(API_PROXY_URL + '/api/shop/equip', {
+        method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + authToken},
+        body: JSON.stringify({ category, itemId: targetId })
+      });
+      const body = await res.json();
+      if(!res.ok){ showToast(body.error || 'Could not update that.', 'error'); btn.disabled = false; return; }
+      shopState.shop = body.shop;
+    }
+    applyEquippedCosmetics();
+    renderAuthUI();
+    renderShopItems();
+  }catch(e){
+    showToast('Could not reach the server.', 'error');
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('shopBtn').onclick = async () => {
+  document.getElementById('shopOverlay').classList.add('on');
+  activeShopTab = 'theme';
+  renderShopTabs();
+  const ok = await loadShopState();
+  if(ok) renderShopItems();
+};
+document.getElementById('shopClose').onclick = () => document.getElementById('shopOverlay').classList.remove('on');
+document.getElementById('shopOverlay').addEventListener('click', (e) => { if(e.target.id === 'shopOverlay') e.currentTarget.classList.remove('on'); });
+
+/* ================= Profile ================= */
+function renderProfileStats(){
+  document.getElementById('profileCoins').textContent = shopState.coins;
+  document.getElementById('profilePoints').textContent = shopState.points;
+  document.getElementById('profileLevelLabel').textContent = 'Level ' + shopState.level;
+}
+document.getElementById('profileClose').onclick = () => document.getElementById('profileOverlay').classList.remove('on');
+document.getElementById('profileOverlay').addEventListener('click', (e) => { if(e.target.id === 'profileOverlay') e.currentTarget.classList.remove('on'); });
+document.getElementById('profileLogoutBtn').onclick = async () => {
+  if(!confirm('Log out of @' + currentUser.username + '?')) return;
+  document.getElementById('profileOverlay').classList.remove('on');
+  try{ await fetch(API_PROXY_URL + '/api/logout', { method:'POST', headers:{'Authorization':'Bearer ' + authToken} }); }catch(e){}
+  if(timerRunning){
+    timerRunning = false;
+    clearInterval(timerInterval);
+    clearInterval(encouragementInterval);
+    document.getElementById('timerToggleBtn').textContent = 'Start studying';
+    document.getElementById('timerToggleBtn').classList.remove('running');
+    document.getElementById('timerDisplay').textContent = '00:00';
+  }
+  authToken = null; currentUser = null; accountData = null;
+  shopState = { coins:0, points:0, level:1, shop:{ ownedThemes:[], ownedBorders:[], ownedBanners:[], equipped:{theme:null,border:null,banner:null} }, catalog:{theme:[],border:[],banner:[]} };
+  localStorage.removeItem('recap_auth_token');
+  folders = await loadJSON('folders', []);
+  renderAuthUI();
+  renderHome();
+  showView('home');
+};
+
+/* ================= Login reward ================= */
+async function claimLoginReward(){
+  try{
+    const res = await fetch(API_PROXY_URL + '/api/reward/login', { method:'POST', headers:{ 'Authorization':'Bearer ' + authToken } });
+    const body = await res.json();
+    if(res.ok){
+      shopState.points = body.points;
+      shopState.level = body.level;
+      if(!body.alreadyAwarded) showToast('+' + body.pointsAwarded + ' points for showing up today!', 'success');
+    }
+  }catch(e){ /* not critical */ }
+}
+
+/* ================= Study timer ================= */
+const ENCOURAGEMENT_LINES = [
+  "You've got this!", "Look at you go!", "Small steps, big results.",
+  "Future you says thanks.", "Keep that streak alive!", "Focus mode: engaged.",
+  "One step closer.", "This is exactly what winning looks like.",
+  "Your brain is leveling up right now.", "Nice — stay with it.",
+  "Every minute counts.", "You're doing great.", "Almost there, keep going.",
+  "This is the fun part (shh).", "Building good habits, one session at a time."
+];
+let timerRunning = false;
+let timerStartedAt = null;
+let timerInterval = null;
+let encouragementInterval = null;
+
+function timerTick(){
+  const seconds = Math.floor((Date.now() - timerStartedAt) / 1000);
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  document.getElementById('timerDisplay').innerHTML = '<span class="timer-dot"></span>' + m + ':' + s;
+}
+function showEncouragement(){
+  const el = document.getElementById('timerEncouragement');
+  el.textContent = ENCOURAGEMENT_LINES[Math.floor(Math.random() * ENCOURAGEMENT_LINES.length)];
+  el.classList.add('on');
+  setTimeout(() => el.classList.remove('on'), 4000);
+}
+document.getElementById('timerToggleBtn').onclick = async () => {
+  const btn = document.getElementById('timerToggleBtn');
+  if(!timerRunning){
+    timerRunning = true;
+    timerStartedAt = Date.now();
+    btn.textContent = 'Stop studying';
+    btn.classList.add('running');
+    timerTick();
+    timerInterval = setInterval(timerTick, 1000);
+    showEncouragement();
+    encouragementInterval = setInterval(showEncouragement, 75000);
+  } else {
+    timerRunning = false;
+    clearInterval(timerInterval);
+    clearInterval(encouragementInterval);
+    document.getElementById('timerEncouragement').classList.remove('on');
+    const minutes = Math.floor((Date.now() - timerStartedAt) / 60000);
+    btn.textContent = 'Start studying';
+    btn.classList.remove('running');
+    document.getElementById('timerDisplay').textContent = '00:00';
+    timerStartedAt = null;
+
+    if(minutes >= 1){
+      try{
+        const res = await fetch(API_PROXY_URL + '/api/reward/timer', {
+          method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + authToken},
+          body: JSON.stringify({ minutes })
+        });
+        const body = await res.json();
+        if(res.ok){
+          shopState.coins = body.coins;
+          renderProfileStats();
+          showToast('+' + body.coinsEarned + ' coins for ' + minutes + ' min of studying!', 'success');
+        } else {
+          showToast(body.error || 'Could not save your coins for that session.', 'error');
+        }
+      }catch(e){
+        showToast('Studied for ' + minutes + ' min, but couldn\u2019t reach the server to save coins.', 'error');
+      }
+    } else {
+      showToast('Study for at least a minute to start earning coins.');
+    }
+  }
 };
 
 /* ================= Settings: dark mode, accent, font ================= */
@@ -1764,28 +2137,32 @@ function renderAuthUI(){
   const btn = document.getElementById('accountBtn');
   const friendsBtn = document.getElementById('friendsBtn');
   const refreshBtn = document.getElementById('refreshDataBtn');
+  const shopBtn = document.getElementById('shopBtn');
+  const timerWidget = document.getElementById('studyTimerWidget');
   if(isLoggedIn()){
-    btn.textContent = '@' + currentUser.username;
+    const initial = currentUser.username.charAt(0).toUpperCase();
+    btn.innerHTML = `<span class="avatar-frame${avatarFrameClass()}"><span class="avatar-badge">${escapeHtml(initial)}</span></span><span>@${escapeHtml(currentUser.username)}</span>`;
     friendsBtn.style.display = 'inline-block';
     refreshBtn.style.display = 'flex';
+    shopBtn.style.display = 'inline-block';
+    timerWidget.style.display = 'block';
   } else {
     btn.textContent = 'Log in';
     friendsBtn.style.display = 'none';
     refreshBtn.style.display = 'none';
+    shopBtn.style.display = 'none';
+    timerWidget.style.display = 'none';
   }
+  renderHomeBanner();
 }
 
-document.getElementById('accountBtn').onclick = async () => {
+document.getElementById('accountBtn').onclick = () => {
   if(isLoggedIn()){
-    if(confirm('Log out of @' + currentUser.username + '?')){
-      try{ await fetch(API_PROXY_URL + '/api/logout', { method:'POST', headers:{'Authorization':'Bearer ' + authToken} }); }catch(e){}
-      authToken = null; currentUser = null; accountData = null;
-      localStorage.removeItem('recap_auth_token');
-      folders = await loadJSON('folders', []);
-      renderAuthUI();
-      renderHome();
-      showView('home');
-    }
+    document.getElementById('profileAvatarFrame').className = 'avatar-frame avatar-frame-large' + avatarFrameClass();
+    document.getElementById('profileAvatarInitial').textContent = currentUser.username.charAt(0).toUpperCase();
+    document.getElementById('profileUsername').textContent = '@' + currentUser.username;
+    renderProfileStats();
+    document.getElementById('profileOverlay').classList.add('on');
     return;
   }
   openAuthModal('login');
@@ -1860,6 +2237,8 @@ document.getElementById('authModalSubmit').onclick = async () => {
     }
 
     document.getElementById('authModalOverlay').classList.remove('on');
+    await loadShopState();
+    await claimLoginReward();
     renderAuthUI();
     renderHome();
     showView('home');
