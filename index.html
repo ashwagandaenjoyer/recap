@@ -326,6 +326,20 @@ span.ul{text-decoration:underline; text-decoration-color:var(--yellow-deep); tex
 .shop-item-btn.equipped{background:var(--green); border-color:var(--green); color:#fff;}
 .shop-item-btn:disabled{opacity:.5; cursor:default;}
 
+/* ---------- Corner decorations (app-wide) ---------- */
+.app-corner{position:fixed; width:60px; height:60px; color:var(--yellow-deep); pointer-events:none; z-index:5; opacity:.9; display:none;}
+.app-corner.on{display:block;}
+.app-corner svg{width:100%; height:100%;}
+#cornerTL{top:10px; left:10px;}
+#cornerTR{top:10px; right:10px; transform:scaleX(-1);}
+#cornerBL{bottom:10px; left:10px; transform:scaleY(-1);}
+#cornerBR{bottom:10px; right:10px; transform:scale(-1,-1);}
+@media (max-width:700px){ .app-corner{width:38px; height:38px;} }
+
+/* ---------- Friend list decoration ---------- */
+.friend-title{font-family:'Space Mono',monospace; font-size:10.5px; color:var(--yellow-deep); display:block;}
+.friend-name-row{display:flex; align-items:center; gap:8px;}
+
 /* ---------- Toasts ---------- */
 #toastHost{position:fixed; bottom:20px; right:20px; z-index:200; display:flex; flex-direction:column; gap:8px; align-items:flex-end; pointer-events:none;}
 .toast{background:var(--ink); color:var(--bg); font-family:'Space Mono',monospace; font-size:12.5px; padding:10px 16px; border-radius:9px; box-shadow:var(--shadow); opacity:0; transform:translateY(8px); transition:opacity .25s ease, transform .25s ease; max-width:260px;}
@@ -694,6 +708,7 @@ input:checked + .slider::before{transform:translateX(18px);}
       </span>
       <div style="font-family:'Fraunces',serif; font-size:19px; font-weight:600; margin-top:12px;" id="profileUsername"></div>
       <div class="pending-label" id="profileLevelLabel" style="margin-top:4px;"></div>
+      <div class="friend-title" id="profileTitleLabel" style="margin-top:4px;"></div>
     </div>
     <div class="drawer-section">
       <div class="stats-grid" style="grid-template-columns:1fr 1fr; margin-bottom:0;">
@@ -711,11 +726,14 @@ input:checked + .slider::before{transform:translateX(18px);}
 <div class="drawer-overlay" id="shopOverlay">
   <div class="drawer">
     <div class="drawer-header"><h3>Shop</h3><button class="icon-btn" id="shopClose" aria-label="Close">×</button></div>
-    <div class="friend-code-display" id="shopCoinsDisplay" style="text-align:center; margin-bottom:16px;">0 coins</div>
+    <div class="friend-code-display" id="shopCoinsDisplay" style="text-align:center; margin-bottom:6px;">0 coins</div>
+    <p class="hint" style="text-align:center; margin-bottom:16px;">Earn coins from the study timer — logging in and mastering chapters earns points (and levels) instead.</p>
     <div class="tab-strip" id="shopTabStrip">
       <button class="tab-btn on" data-shoptab="theme" type="button">Themes</button>
       <button class="tab-btn" data-shoptab="border" type="button">Borders</button>
       <button class="tab-btn" data-shoptab="banner" type="button">Banners</button>
+      <button class="tab-btn" data-shoptab="corner" type="button">Corners</button>
+      <button class="tab-btn" data-shoptab="title" type="button">Titles</button>
     </div>
     <div id="shopItemsGrid"></div>
   </div>
@@ -729,6 +747,11 @@ input:checked + .slider::before{transform:translateX(18px);}
 </div>
 
 <div id="toastHost"></div>
+
+<div class="app-corner" id="cornerTL"></div>
+<div class="app-corner" id="cornerTR"></div>
+<div class="app-corner" id="cornerBL"></div>
+<div class="app-corner" id="cornerBR"></div>
 
 <script>
 /* ================= PDF worker =================
@@ -1834,7 +1857,7 @@ function showToast(message, type){
 }
 
 /* ================= Shop + cosmetics ================= */
-let shopState = { coins:0, points:0, level:1, shop:{ ownedThemes:[], ownedBorders:[], ownedBanners:[], equipped:{theme:null,border:null,banner:null} }, catalog:{theme:[],border:[],banner:[]} };
+let shopState = { coins:0, points:0, level:1, shop:{ ownedThemes:[], ownedBorders:[], ownedBanners:[], ownedCorners:[], ownedTitles:[], equipped:{theme:null,border:null,banner:null,corner:null,title:null} }, catalog:{theme:[],border:[],banner:[],corner:[],title:[]} };
 
 async function loadShopState(){
   if(!isLoggedIn()) return false;
@@ -1846,12 +1869,36 @@ async function loadShopState(){
     return true;
   }catch(e){ return false; }
 }
+const CORNER_SVGS = {
+  rings: '<svg viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor"><path d="M2,26 A24,24 0 0,1 26,2" stroke-width="2"/><path d="M2,16 A14,14 0 0,1 16,2" stroke-width="2"/><circle cx="6" cy="6" r="2" fill="currentColor" stroke="none"/></svg>',
+  geometric: '<svg viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"><path d="M2,20 L2,2 L20,2" stroke-linecap="round"/><line x1="10" y1="10" x2="18" y2="10"/><line x1="10" y1="10" x2="10" y2="18"/><circle cx="30" cy="8" r="2.2" fill="currentColor" stroke="none"/><circle cx="8" cy="30" r="2.2" fill="currentColor" stroke="none"/></svg>',
+  leaf: '<svg viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M4,4 C24,4 34,20 34,34 C20,34 4,24 4,4 Z"/><path d="M4,4 C18,10 28,22 34,34" stroke="var(--bg-soft)" stroke-width="1.6" fill="none"/></svg>',
+  stars: '<svg viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M10,2 L12.5,8 L19,8 L13.8,12 L15.8,18.5 L10,14.8 L4.2,18.5 L6.2,12 L1,8 L7.5,8 Z"/><path d="M32,18 L33.7,22.3 L38,22.3 L34.5,25 L35.8,29.3 L32,26.7 L28.2,29.3 L29.5,25 L26,22.3 L30.3,22.3 Z" opacity="0.7"/><path d="M18,32 L19.2,35 L22.5,35 L19.8,37 L20.8,40 L18,38.1 L15.2,40 L16.2,37 L13.5,35 L16.8,35 Z" opacity="0.55"/></svg>',
+  floral: '<svg viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><g transform="translate(17,17)"><g transform="rotate(0)"><ellipse cx="7" cy="0" rx="6.5" ry="3.4"/></g><g transform="rotate(72)"><ellipse cx="7" cy="0" rx="6.5" ry="3.4"/></g><g transform="rotate(144)"><ellipse cx="7" cy="0" rx="6.5" ry="3.4"/></g><g transform="rotate(216)"><ellipse cx="7" cy="0" rx="6.5" ry="3.4"/></g><g transform="rotate(288)"><ellipse cx="7" cy="0" rx="6.5" ry="3.4"/></g><circle r="3.2" fill="var(--bg-soft)"/></g><path d="M17,26 Q11,37 5,45" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/><ellipse cx="10" cy="36" rx="5" ry="2.5" transform="rotate(-40 10 36)"/></svg>',
+  sparkle: '<svg viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M12,2 C13,8 14,9 20,10 C14,11 13,12 12,18 C11,12 10,11 4,10 C10,9 11,8 12,2 Z"/><path d="M34,20 C34.6,24 35.2,24.6 39,25.2 C35.2,25.8 34.6,26.4 34,30.4 C33.4,26.4 32.8,25.8 29,25.2 C32.8,24.6 33.4,24 34,20 Z" opacity="0.75"/><path d="M20,34 C20.4,36.6 20.8,37 23.4,37.4 C20.8,37.8 20.4,38.2 20,40.8 C19.6,38.2 19.2,37.8 16.6,37.4 C19.2,37 19.6,36.6 20,34 Z" opacity="0.55"/></svg>'
+};
+const TITLE_LABELS = {
+  certifiednerd: 'Certified Nerd', nightowl: 'Night Owl', studymachine: 'Study Machine',
+  flashcardfanatic: 'Flashcard Fanatic', quizwizard: 'Quiz Wizard', streakkeeper: 'Streak Keeper'
+};
+
+function renderCornerDecoration(){
+  const cornerId = isLoggedIn() ? shopState.shop.equipped.corner : null;
+  const svg = cornerId ? CORNER_SVGS[cornerId] : null;
+  ['cornerTL','cornerTR','cornerBL','cornerBR'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.toggle('on', !!svg);
+    el.innerHTML = svg || '';
+  });
+}
+
 function applyEquippedCosmetics(){
   if(shopState.shop.equipped.theme){
     const item = (shopState.catalog.theme || []).find(t => t.id === shopState.shop.equipped.theme);
     if(item) applyAccent(item.color, false);
   }
   renderHomeBanner();
+  renderCornerDecoration();
 }
 function renderHomeBanner(){
   const el = document.getElementById('homeBannerStrip');
@@ -1871,7 +1918,8 @@ document.querySelectorAll('#shopTabStrip .tab-btn').forEach(btn => {
 function renderShopTabs(){
   document.querySelectorAll('#shopTabStrip .tab-btn').forEach(b => b.classList.toggle('on', b.dataset.shoptab === activeShopTab));
 }
-function ownedKeyFor(cat){ return cat === 'theme' ? 'ownedThemes' : cat === 'border' ? 'ownedBorders' : 'ownedBanners'; }
+const SHOP_OWNED_KEYS = { theme:'ownedThemes', border:'ownedBorders', banner:'ownedBanners', corner:'ownedCorners', title:'ownedTitles' };
+function ownedKeyFor(cat){ return SHOP_OWNED_KEYS[cat]; }
 
 function renderShopItems(){
   document.getElementById('shopCoinsDisplay').textContent = shopState.coins + ' coins';
@@ -1888,8 +1936,12 @@ function renderShopItems(){
       preview = `<div class="shop-item-preview" style="background:${item.color}"></div>`;
     } else if(activeShopTab === 'border'){
       preview = `<span class="avatar-frame border-${item.id}"><span class="avatar-badge" style="width:20px;height:20px;font-size:10px;">A</span></span>`;
-    } else {
+    } else if(activeShopTab === 'banner'){
       preview = `<div class="shop-item-preview banner-${item.id}" style="border-radius:6px; width:36px; height:20px;"></div>`;
+    } else if(activeShopTab === 'corner'){
+      preview = `<span style="width:28px; height:28px; display:inline-block; color:var(--yellow-deep);">${CORNER_SVGS[item.id] || ''}</span>`;
+    } else {
+      preview = `<span style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-family:'Space Mono',monospace; font-size:14px; color:var(--yellow-deep);">Aa</span>`;
     }
     let btnHtml;
     if(equipped) btnHtml = `<button class="shop-item-btn equipped" data-action="unequip" data-cat="${activeShopTab}" data-id="${item.id}" type="button">Equipped</button>`;
@@ -1949,6 +2001,8 @@ function renderProfileStats(){
   document.getElementById('profileCoins').textContent = shopState.coins;
   document.getElementById('profilePoints').textContent = shopState.points;
   document.getElementById('profileLevelLabel').textContent = 'Level ' + shopState.level;
+  const titleId = shopState.shop.equipped.title;
+  document.getElementById('profileTitleLabel').textContent = titleId ? TITLE_LABELS[titleId] || '' : '';
 }
 document.getElementById('profileClose').onclick = () => document.getElementById('profileOverlay').classList.remove('on');
 document.getElementById('profileOverlay').addEventListener('click', (e) => { if(e.target.id === 'profileOverlay') e.currentTarget.classList.remove('on'); });
@@ -1965,7 +2019,7 @@ document.getElementById('profileLogoutBtn').onclick = async () => {
     document.getElementById('timerDisplay').textContent = '00:00';
   }
   authToken = null; currentUser = null; accountData = null;
-  shopState = { coins:0, points:0, level:1, shop:{ ownedThemes:[], ownedBorders:[], ownedBanners:[], equipped:{theme:null,border:null,banner:null} }, catalog:{theme:[],border:[],banner:[]} };
+  shopState = { coins:0, points:0, level:1, shop:{ ownedThemes:[], ownedBorders:[], ownedBanners:[], ownedCorners:[], ownedTitles:[], equipped:{theme:null,border:null,banner:null,corner:null,title:null} }, catalog:{theme:[],border:[],banner:[],corner:[],title:[]} };
   localStorage.removeItem('recap_auth_token');
   folders = await loadJSON('folders', []);
   renderAuthUI();
@@ -1981,7 +2035,7 @@ async function claimLoginReward(){
     if(res.ok){
       shopState.points = body.points;
       shopState.level = body.level;
-      if(!body.alreadyAwarded) showToast('+' + body.pointsAwarded + ' points for showing up today!', 'success');
+      if(!body.alreadyAwarded) showToast('+' + body.pointsAwarded + ' points for showing up today (levels you up — coins for the shop come from the study timer)', 'success');
     }
   }catch(e){ /* not critical */ }
 }
@@ -2154,6 +2208,7 @@ function renderAuthUI(){
     timerWidget.style.display = 'none';
   }
   renderHomeBanner();
+  renderCornerDecoration();
 }
 
 document.getElementById('accountBtn').onclick = () => {
@@ -2316,6 +2371,16 @@ async function loadFriends(){
   }catch(e){ return false; }
 }
 
+function friendAvatarHtml(f){
+  const borderClass = f.equippedBorder ? ' border-' + f.equippedBorder : '';
+  const initial = f.username.charAt(0).toUpperCase();
+  return `<span class="avatar-frame${borderClass}" style="width:24px; height:24px;"><span class="avatar-badge" style="width:20px; height:20px; font-size:10px;">${escapeHtml(initial)}</span></span>`;
+}
+function friendNameBlockHtml(f){
+  const titleHtml = f.equippedTitle ? `<span class="friend-title">${escapeHtml(TITLE_LABELS[f.equippedTitle] || '')}</span>` : '';
+  return `<div class="friend-name-row">${friendAvatarHtml(f)}<div><span class="name">@${escapeHtml(f.username)}</span>${titleHtml}</div></div>`;
+}
+
 function renderFriendsUI(){
   const incomingSection = document.getElementById('incomingSection');
   const outgoingSection = document.getElementById('outgoingSection');
@@ -2324,17 +2389,17 @@ function renderFriendsUI(){
 
   document.getElementById('incomingList').innerHTML = friendsCache.incoming.map(f => `
     <div class="friend-row">
-      <span class="name">@${escapeHtml(f.username)}</span>
+      ${friendNameBlockHtml(f)}
       <div class="friend-row-actions">
         <button class="accept" data-id="${f.requestId}" data-action="accept" type="button">Accept</button>
         <button class="decline" data-id="${f.requestId}" data-action="decline" type="button">Decline</button>
       </div>
     </div>`).join('');
   document.getElementById('outgoingList').innerHTML = friendsCache.outgoing.map(f => `
-    <div class="friend-row"><span class="name">@${escapeHtml(f.username)}</span><span class="pending-label">Pending…</span></div>
+    <div class="friend-row">${friendNameBlockHtml(f)}<span class="pending-label">Pending…</span></div>
   `).join('');
   document.getElementById('friendsList').innerHTML = friendsCache.friends.length
-    ? friendsCache.friends.map(f => `<div class="friend-row"><span class="name">@${escapeHtml(f.username)}</span></div>`).join('')
+    ? friendsCache.friends.map(f => `<div class="friend-row">${friendNameBlockHtml(f)}</div>`).join('')
     : '<div class="friend-empty">No friends yet — add one above.</div>';
 
   document.querySelectorAll('#incomingList [data-action]').forEach(btn => {
