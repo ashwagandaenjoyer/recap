@@ -204,6 +204,100 @@ textarea::placeholder{color:var(--grey-soft);}
 .chat-suggestion{font-family:'Space Mono',monospace; font-size:11.5px; padding:6px 11px; border-radius:20px; border:1px solid var(--border-strong); background:var(--surface); color:var(--grey); cursor:pointer;}
 .chat-suggestion:hover{border-color:var(--yellow-deep); color:var(--ink);}
 
+/* ---------- Study layout: rail + main + chat dock ---------- */
+.study-layout{display:flex; gap:20px; align-items:flex-start;}
+.study-rail{
+  width:92px; flex-shrink:0; background:var(--bg-soft); border:1px solid var(--border); border-radius:14px;
+  padding:12px 8px; display:flex; flex-direction:column; gap:4px; position:sticky; top:20px;
+}
+.rail-btn{
+  background:none; border:none; cursor:pointer; padding:12px 6px; border-radius:10px;
+  display:flex; flex-direction:column; align-items:center; gap:6px; color:var(--grey);
+  font-family:'Space Mono',monospace; font-size:10.5px; line-height:1.2; text-align:center; width:100%;
+}
+.rail-btn svg{width:22px; height:22px;}
+.rail-btn:hover{background:var(--surface); color:var(--ink);}
+.rail-btn.on{background:var(--yellow-soft); color:var(--yellow-deep);}
+.study-main{flex:1; min-width:0;}
+.study-toolbar{display:flex; gap:8px; justify-content:flex-end; margin-bottom:12px; flex-wrap:wrap;}
+
+/* ---------- Chapter hero banner ---------- */
+.chapter-hero{
+  display:flex; align-items:center; gap:18px; padding:18px 22px; margin-bottom:14px;
+  background:var(--hero-bg); border-radius:14px; border:1px solid var(--border); overflow:hidden;
+}
+.hero-art{flex-shrink:0; width:104px; height:88px;}
+.hero-art svg{width:100%; height:100%; display:block;}
+.hero-body{flex:1; min-width:0;}
+.hero-title{
+  font-family:'Fraunces',serif; font-size:clamp(19px,2.3vw,27px); font-weight:700; line-height:1.15;
+  margin:0 0 12px; color:var(--hero-ink);
+}
+.hero-progress-row{display:flex; align-items:center; gap:12px;}
+.hero-bar{flex:1; max-width:320px; height:7px; border-radius:5px; background:var(--hero-track); overflow:hidden;}
+.hero-bar-fill{height:100%; width:0%; border-radius:5px; background:var(--yellow); transition:width .4s ease;}
+.hero-pct{font-family:'Space Mono',monospace; font-size:11.5px; color:var(--hero-muted);}
+:root{ --hero-bg:#1E1C19; --hero-ink:#F3F1E9; --hero-track:rgba(243,241,233,.16); --hero-muted:rgba(243,241,233,.6); }
+@media (max-width:600px){
+  .chapter-hero{padding:14px; gap:12px;}
+  .hero-art{width:72px; height:62px;}
+}
+
+.chat-dock{
+  width:330px; flex-shrink:0; background:var(--surface); border:1px solid var(--border); border-radius:14px;
+  padding:18px; box-shadow:var(--shadow); position:sticky; top:20px; display:none; flex-direction:column;
+}
+.chat-dock.on{display:flex;}
+.chat-dock .chat-messages{max-height:440px; min-height:200px;}
+.chat-dock .chat-msg{max-width:92%; font-size:13.5px;}
+.chat-dock .chat-input-row{flex-direction:column; align-items:stretch; gap:8px;}
+.chat-dock .chat-input-row .primary-btn{width:100%;}
+
+@media (max-width:1100px){
+  .chat-dock{
+    position:fixed; top:0; right:0; bottom:0; width:340px; max-width:88vw; z-index:115;
+    border-radius:0; border-right:none; overflow-y:auto;
+  }
+}
+@media (max-width:700px){
+  .study-layout{flex-direction:column;}
+  .study-rail{
+    width:100%; flex-direction:row; position:static; overflow-x:auto; padding:8px;
+  }
+  .rail-btn{min-width:74px; padding:9px 4px;}
+}
+
+/* ---------- Notes: document view ---------- */
+.doc{max-width:760px;}
+.doc-title{font-family:'Fraunces',serif; font-size:30px; font-weight:700; line-height:1.15; margin:0 0 6px;}
+.doc-sub{font-family:'Space Mono',monospace; font-size:11.5px; color:var(--grey); margin-bottom:26px; letter-spacing:.04em;}
+.doc-section{margin-bottom:30px;}
+.doc-h2{
+  font-family:'Fraunces',serif; font-size:20px; font-weight:600; margin:0 0 4px;
+  color:var(--yellow-deep); display:flex; align-items:baseline; gap:10px;
+}
+.doc-h2 .doc-num{font-family:'Space Mono',monospace; font-size:12px; opacity:.65;}
+.doc-rule{height:2px; background:var(--yellow-soft); border-radius:2px; margin:0 0 14px;}
+.doc-p{font-size:15px; line-height:1.75; margin:0 0 12px; color:var(--ink);}
+.doc-list{list-style:none; padding:0; margin:0 0 12px;}
+.doc-list li{position:relative; padding-left:20px; font-size:14.5px; line-height:1.7; margin-bottom:7px;}
+.doc-list li::before{content:''; position:absolute; left:4px; top:10px; width:6px; height:6px; border-radius:50%; background:var(--yellow);}
+.doc-term{color:var(--term); font-weight:600;}
+.doc-callout{
+  border-left:3px solid var(--wine); background:var(--wine-soft); padding:12px 16px;
+  border-radius:0 8px 8px 0; margin:0 0 12px; font-size:14px; line-height:1.6;
+}
+.doc-callout-label{font-family:'Space Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--wine); display:block; margin-bottom:5px;}
+.doc-keytable{width:100%; border-collapse:collapse; margin-top:8px; font-size:13.5px;}
+.doc-keytable th{
+  text-align:left; font-family:'Space Mono',monospace; font-size:10.5px; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--grey); font-weight:400; padding:0 10px 8px 0; border-bottom:1px solid var(--border);
+}
+.doc-keytable td{padding:10px 10px 10px 0; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.55;}
+.doc-keytable td:first-child{font-weight:600; color:var(--term); width:34%;}
+:root{ --term:#2F6FA8; }
+body.dark{ --term:#7FB2E0; }
+
 .count-row{display:flex; gap:28px; flex-wrap:wrap; margin-top:22px;}
 .count-group{flex:1; min-width:200px;}
 .count-title{font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--grey); margin-bottom:9px;}
@@ -560,24 +654,54 @@ input:checked + .slider::before{transform:translateX(18px);}
     <div class="status" id="status"></div>
   </div>
 
-  <!-- STUDY: one chapter's flashcards/quiz/recap -->
+  <!-- STUDY: one chapter's notes/quiz/flashcards -->
   <div class="view" id="view-study">
-    <div class="context-bar" id="studyContextBar"></div>
+    <div class="study-layout">
+      <nav class="study-rail" id="studyRail">
+        <button class="rail-btn" data-panel="recap" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span>Learn</span>
+        </button>
+        <button class="rail-btn on" data-panel="notes" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg>
+          <span>Notes</span>
+        </button>
+        <button class="rail-btn" data-panel="quiz" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12l3 3 5-6"/></svg>
+          <span>Quiz</span>
+        </button>
+        <button class="rail-btn" data-panel="flash" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="7" y="3" width="14" height="14" rx="2"/><path d="M3 7v12a2 2 0 0 0 2 2h12"/></svg>
+          <span>Flashcards</span>
+        </button>
+        <button class="rail-btn" data-panel="progress" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 20h18"/><rect x="5" y="11" width="4" height="9"/><rect x="11" y="6" width="4" height="14"/><rect x="17" y="14" width="4" height="6"/></svg>
+          <span>Progress</span>
+        </button>
+      </nav>
 
-    <div class="tabs" id="tabs">
-      <div class="tab-strip">
-        <button class="tab-btn on" data-panel="flash">Flashcards <span class="badge" id="fcBadge">0</span></button>
-        <button class="tab-btn" data-panel="quiz">Quiz <span class="badge" id="quizBadge">0</span></button>
-        <button class="tab-btn" data-panel="recap">Recap</button>
-        <button class="tab-btn" data-panel="progress">Progress</button>
-        <button class="tab-btn" data-panel="chat">Ask AI</button>
-        <div class="spacer"></div>
-        <button class="ghost-btn" id="sendChapterBtn" style="display:none;">Send to friend</button>
-        <button class="ghost-btn" id="editMaterialBtn">Edit material</button>
-      </div>
-      <div class="panel">
+      <div class="study-main">
+        <div class="context-bar" id="studyContextBar"></div>
+        <div class="chapter-hero" id="chapterHero">
+          <div class="hero-art" id="heroArt"></div>
+          <div class="hero-body">
+            <h2 class="hero-title" id="heroTitle"></h2>
+            <div class="hero-progress-row">
+              <div class="hero-bar"><div class="hero-bar-fill" id="heroBarFill"></div></div>
+              <span class="hero-pct" id="heroPct">0%</span>
+            </div>
+          </div>
+        </div>
+        <div class="study-toolbar">
+          <button class="ghost-btn" id="chatToggleBtn" type="button">Ask AI</button>
+          <button class="ghost-btn" id="sendChapterBtn" style="display:none;">Send to friend</button>
+          <button class="ghost-btn" id="editMaterialBtn">Edit material</button>
+        </div>
 
-        <div class="panel-inner on" id="panel-flash">
+        <div class="tabs" id="tabs">
+          <div class="panel">
+
+        <div class="panel-inner" id="panel-flash">
           <div id="flashContent">
             <div class="fc-toprow">
               <div class="fc-meta" id="fcCounter">Card 1 of 10</div>
@@ -614,6 +738,11 @@ input:checked + .slider::before{transform:translateX(18px);}
           <div id="recapBody"></div>
         </div>
 
+        <div class="panel-inner on" id="panel-notes">
+          <div id="notesEmpty" class="chat-empty">No notes yet — generate this chapter to build them.</div>
+          <article class="doc" id="notesBody"></article>
+        </div>
+
         <div class="panel-inner" id="panel-progress">
           <div class="stats-grid">
             <div class="stat-card"><div class="stat-num" id="statMastered">0/0</div><div class="stat-label">Flashcards mastered</div></div>
@@ -627,20 +756,26 @@ input:checked + .slider::before{transform:translateX(18px);}
           </div>
         </div>
 
-        <div class="panel-inner" id="panel-chat">
-          <div class="chat-header">
-            <span class="fc-meta" id="chatContextLabel">Ask about this chapter</span>
-            <button class="text-btn" id="chatClearBtn" type="button">Clear chat</button>
           </div>
-          <div class="chat-messages" id="chatMessages"></div>
-          <div class="chat-input-row">
-            <textarea id="chatInput" rows="2" placeholder="Ask anything about this chapter…"></textarea>
-            <button class="primary-btn" id="chatSendBtn" type="button">Send</button>
-          </div>
-          <div class="chat-footnote" id="chatFootnote"></div>
         </div>
-
       </div>
+
+      <aside class="chat-dock" id="chatDock">
+        <div class="chat-header">
+          <span class="fc-meta" id="chatContextLabel">Ask about this chapter</span>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <button class="text-btn" id="chatClearBtn" type="button">Clear</button>
+            <button class="icon-btn" id="chatCloseBtn" aria-label="Close chat" style="width:28px;height:28px;font-size:13px;">×</button>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-row">
+          <textarea id="chatInput" rows="2" placeholder="Ask anything about this chapter…"></textarea>
+          <button class="primary-btn" id="chatSendBtn" type="button">Send</button>
+        </div>
+        <div class="chat-footnote" id="chatFootnote"></div>
+      </aside>
+
     </div>
   </div>
 </div>
@@ -940,7 +1075,7 @@ function emptyAccountDataClient(){ return { folders:[], chaptersByFolder:{}, kit
 function defaultKit(){
   return {
     sourceText:'', files:[], images:[], fcCount:10, quizCount:10, language:'en',
-    flashcards:[], quiz:[], recap:null, recapHtml:null, generated:false,
+    flashcards:[], quiz:[], recap:null, recapHtml:null, notes:null, generated:false,
     progress:{ learned:[], stillLearning:[], quizBest:null, quizLast:null, completionAwarded:false }
   };
 }
@@ -1359,9 +1494,106 @@ async function openChapter(id){
 }
 function showStudyForCurrentKit(){
   renderChapterContext();
-  renderFlashcards(); renderQuiz(); renderRecap();
-  switchTab('flash');
+  renderChapterHero();
+  renderFlashcards(); renderQuiz(); renderRecap(); renderNotes();
+  switchTab('notes');
+  document.getElementById('chatDock').classList.remove('on');
 }
+/* ================= Chapter art =================
+   Pre-made SVG illustrations, chosen by keyword-matching the chapter's own
+   content. Nothing here is AI-generated, so it costs nothing and appears
+   instantly — and the same chapter always gets the same picture, because
+   the variant is chosen from a hash of its name rather than at random. */
+const CHAPTER_ART = {
+  chemistry: [
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><g stroke="#6FD3E0" stroke-width="2"><polygon points="40,20 56,29 56,47 40,56 24,47 24,29" fill="#2E6E7E"/><polygon points="66,34 82,43 82,61 66,70 50,61 50,43" fill="#8FE3D8" fill-opacity=".85"/><polygon points="44,54 60,63 60,81 44,90 28,81 28,63" fill="#4FA8B8" fill-opacity=".9"/></g><g fill="#6FD3E0"><circle cx="86" cy="26" r="4"/><circle cx="98" cy="34" r="3"/><circle cx="90" cy="42" r="3"/></g><g stroke="#6FD3E0" stroke-width="1.5"><line x1="86" y1="26" x2="98" y2="34"/><line x1="98" y1="34" x2="90" y2="42"/></g><circle cx="24" cy="70" r="4" fill="#E8734A"/><circle cx="96" cy="72" r="4" fill="#E8734A"/></svg>`,
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><g stroke="#8FE3D8" stroke-width="2.5" fill="none"><circle cx="60" cy="50" r="10" fill="#4FA8B8"/><ellipse cx="60" cy="50" rx="46" ry="18"/><ellipse cx="60" cy="50" rx="46" ry="18" transform="rotate(60 60 50)"/><ellipse cx="60" cy="50" rx="46" ry="18" transform="rotate(120 60 50)"/></g><circle cx="106" cy="50" r="5" fill="#E8734A"/><circle cx="37" cy="10" r="5" fill="#6FD3E0"/><circle cx="37" cy="90" r="5" fill="#8FE3D8"/></svg>`
+  ],
+  biology: [
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><g stroke="#8FE3D8" stroke-width="2" opacity=".75"><line x1="46" y1="22" x2="74" y2="22"/><line x1="38" y1="36" x2="82" y2="36"/><line x1="38" y1="64" x2="82" y2="64"/><line x1="46" y1="78" x2="74" y2="78"/><line x1="36" y1="50" x2="84" y2="50"/></g><path d="M46,16 C84,24 84,40 60,50 C36,60 36,76 74,84" fill="none" stroke="#6FD3E0" stroke-width="4" stroke-linecap="round"/><path d="M74,16 C36,24 36,40 60,50 C84,60 84,76 46,84" fill="none" stroke="#4FA8B8" stroke-width="4" stroke-linecap="round"/><circle cx="36" cy="50" r="4" fill="#E8734A"/><circle cx="84" cy="50" r="4" fill="#E8734A"/></svg>`,
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><ellipse cx="60" cy="50" rx="40" ry="30" fill="#2E6E7E"/><ellipse cx="60" cy="50" rx="40" ry="30" fill="none" stroke="#8FE3D8" stroke-width="2.5"/><circle cx="48" cy="44" r="10" fill="#8FE3D8"/><circle cx="48" cy="44" r="4" fill="#2E6E7E"/><ellipse cx="76" cy="58" rx="9" ry="5" fill="#6FD3E0" transform="rotate(-25 76 58)"/><ellipse cx="68" cy="36" rx="7" ry="4" fill="#4FA8B8" transform="rotate(20 68 36)"/><circle cx="40" cy="62" r="4" fill="#E8734A"/></svg>`
+  ],
+  physics: [
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><path d="M10,70 Q30,20 50,70 T90,70" fill="none" stroke="#6FD3E0" stroke-width="3"/><path d="M14,78 Q34,38 54,78 T94,78" fill="none" stroke="#8FE3D8" stroke-width="2.5" opacity=".7"/><circle cx="96" cy="34" r="12" fill="#4FA8B8"/><circle cx="96" cy="34" r="12" fill="none" stroke="#8FE3D8" stroke-width="2"/><line x1="96" y1="34" x2="96" y2="14" stroke="#E8734A" stroke-width="2.5"/><circle cx="96" cy="14" r="4" fill="#E8734A"/></svg>`,
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><circle cx="34" cy="62" r="18" fill="#2E6E7E" stroke="#8FE3D8" stroke-width="2"/><circle cx="80" cy="38" r="11" fill="#4FA8B8" stroke="#6FD3E0" stroke-width="2"/><ellipse cx="80" cy="38" rx="22" ry="7" fill="none" stroke="#8FE3D8" stroke-width="2" transform="rotate(-25 80 38)"/><circle cx="100" cy="28" r="3.5" fill="#E8734A"/><line x1="34" y1="44" x2="34" y2="18" stroke="#6FD3E0" stroke-width="2" stroke-dasharray="4 3"/><circle cx="34" cy="16" r="4" fill="#E8734A"/></svg>`
+  ],
+  literature: [
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><path d="M18,26 L58,18 L58,78 L18,86 Z" fill="#2E6E7E" stroke="#8FE3D8" stroke-width="2"/><path d="M102,26 L62,18 L62,78 L102,86 Z" fill="#4FA8B8" stroke="#8FE3D8" stroke-width="2"/><path d="M62,18 L88,12 L88,70 L62,78 Z" fill="#6FD3E0" fill-opacity=".55" stroke="#8FE3D8" stroke-width="1.5"/><g stroke="#8FE3D8" stroke-width="1.5" opacity=".6"><line x1="26" y1="38" x2="50" y2="34"/><line x1="26" y1="48" x2="50" y2="44"/><line x1="26" y1="58" x2="44" y2="54"/></g><circle cx="60" cy="14" r="4" fill="#E8734A"/></svg>`,
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><rect x="26" y="16" width="52" height="68" rx="3" fill="#2E6E7E" stroke="#8FE3D8" stroke-width="2"/><rect x="34" y="10" width="52" height="68" rx="3" fill="#4FA8B8" stroke="#8FE3D8" stroke-width="2"/><g stroke="#8FE3D8" stroke-width="1.8" opacity=".75"><line x1="44" y1="26" x2="76" y2="26"/><line x1="44" y1="36" x2="76" y2="36"/><line x1="44" y1="46" x2="70" y2="46"/><line x1="44" y1="56" x2="76" y2="56"/></g><path d="M92,72 L104,60 L110,66 L98,78 Z" fill="#E8734A"/></svg>`
+  ],
+  math: [
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><polyline points="16,84 16,20" stroke="#8FE3D8" stroke-width="2.5" fill="none"/><polyline points="16,84 104,84" stroke="#8FE3D8" stroke-width="2.5" fill="none"/><path d="M16,72 C40,72 46,30 70,30 C88,30 92,46 104,24" fill="none" stroke="#6FD3E0" stroke-width="3"/><circle cx="70" cy="30" r="5" fill="#E8734A"/><polygon points="30,84 44,58 58,84" fill="#4FA8B8" fill-opacity=".7" stroke="#8FE3D8" stroke-width="1.5"/></svg>`,
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="50" r="30" fill="none" stroke="#8FE3D8" stroke-width="2.5"/><polygon points="60,20 86,65 34,65" fill="#4FA8B8" fill-opacity=".75" stroke="#6FD3E0" stroke-width="2"/><rect x="46" y="36" width="28" height="28" fill="#2E6E7E" fill-opacity=".8" stroke="#8FE3D8" stroke-width="1.8" transform="rotate(45 60 50)"/><circle cx="60" cy="50" r="4" fill="#E8734A"/></svg>`
+  ],
+  philosophy: [
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><rect x="28" y="30" width="9" height="46" fill="#4FA8B8" stroke="#8FE3D8" stroke-width="1.5"/><rect x="55" y="30" width="9" height="46" fill="#4FA8B8" stroke="#8FE3D8" stroke-width="1.5"/><rect x="82" y="30" width="9" height="46" fill="#4FA8B8" stroke="#8FE3D8" stroke-width="1.5"/><rect x="20" y="76" width="80" height="7" fill="#2E6E7E" stroke="#8FE3D8" stroke-width="1.5"/><polygon points="16,30 104,30 60,12" fill="#6FD3E0" fill-opacity=".8" stroke="#8FE3D8" stroke-width="1.5"/><circle cx="60" cy="20" r="3.5" fill="#E8734A"/></svg>`,
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><circle cx="58" cy="48" r="26" fill="#2E6E7E" stroke="#8FE3D8" stroke-width="2"/><path d="M58,22 C74,30 74,66 58,74" fill="none" stroke="#6FD3E0" stroke-width="2"/><path d="M58,22 C42,30 42,66 58,74" fill="none" stroke="#6FD3E0" stroke-width="2" opacity=".6"/><line x1="32" y1="48" x2="84" y2="48" stroke="#8FE3D8" stroke-width="2"/><g fill="#E8734A"><circle cx="92" cy="24" r="4"/><circle cx="102" cy="34" r="3"/><circle cx="96" cy="14" r="2.5"/></g></svg>`
+  ],
+  history: [
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><path d="M30,80 L30,30 Q30,18 42,18 L86,18 L86,72 L42,72 Q30,72 30,80 Z" fill="#2E6E7E" stroke="#8FE3D8" stroke-width="2"/><path d="M42,18 L42,72" stroke="#6FD3E0" stroke-width="2"/><g stroke="#8FE3D8" stroke-width="1.6" opacity=".65"><line x1="52" y1="32" x2="76" y2="32"/><line x1="52" y1="44" x2="76" y2="44"/><line x1="52" y1="56" x2="68" y2="56"/></g><circle cx="92" cy="26" r="4" fill="#E8734A"/></svg>`,
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><rect x="28" y="30" width="9" height="46" fill="#4FA8B8" stroke="#8FE3D8" stroke-width="1.5"/><rect x="55" y="30" width="9" height="46" fill="#4FA8B8" stroke="#8FE3D8" stroke-width="1.5"/><rect x="82" y="30" width="9" height="46" fill="#4FA8B8" stroke="#8FE3D8" stroke-width="1.5"/><rect x="20" y="76" width="80" height="7" fill="#2E6E7E" stroke="#8FE3D8" stroke-width="1.5"/><polygon points="16,30 104,30 60,12" fill="#6FD3E0" fill-opacity=".8" stroke="#8FE3D8" stroke-width="1.5"/><circle cx="60" cy="20" r="3.5" fill="#E8734A"/></svg>`
+  ],
+  general: [
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><polygon points="60,14 96,34 96,66 60,86 24,66 24,34" fill="#2E6E7E" stroke="#8FE3D8" stroke-width="2"/><polygon points="60,30 82,42 82,62 60,74 38,62 38,42" fill="#4FA8B8" fill-opacity=".8"/><circle cx="60" cy="52" r="7" fill="#6FD3E0"/><circle cx="96" cy="34" r="4" fill="#E8734A"/><circle cx="24" cy="66" r="4" fill="#E8734A"/></svg>`,
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><circle cx="44" cy="44" r="22" fill="none" stroke="#8FE3D8" stroke-width="3"/><circle cx="44" cy="44" r="22" fill="#4FA8B8" fill-opacity=".35"/><line x1="60" y1="60" x2="88" y2="84" stroke="#6FD3E0" stroke-width="5" stroke-linecap="round"/><circle cx="44" cy="44" r="8" fill="#8FE3D8" fill-opacity=".6"/><circle cx="86" cy="22" r="4" fill="#E8734A"/></svg>`,
+`<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><rect x="24" y="24" width="72" height="54" rx="4" fill="#2E6E7E" stroke="#8FE3D8" stroke-width="2"/><rect x="24" y="24" width="72" height="13" rx="4" fill="#4FA8B8"/><g stroke="#8FE3D8" stroke-width="1.8" opacity=".7"><line x1="34" y1="48" x2="86" y2="48"/><line x1="34" y1="58" x2="86" y2="58"/><line x1="34" y1="68" x2="70" y2="68"/></g><circle cx="32" cy="30.5" r="2.5" fill="#E8734A"/></svg>`
+  ]
+};
+// Multi-language keywords, since course material here may be in French or Italian.
+const SUBJECT_KEYWORDS = {
+  chemistry: ['chemi','chimi','molecul','molécul','atom','acid','acide','base','ion','reaction','réaction','oxid','redox','ph ','solution','aqueu','organic','organiqu','bond','valence','mole','titrat'],
+  biology: ['biolog','cell','cellul','dna','adn','gene','gène','genetic','génét','protein','protéin','enzyme','organism','evolution','évolution','photosynth','respiration','mitosis','mitose','tissue','neuron','bacteri','virus','ecosystem','écosystèm','anatom'],
+  physics: ['physic','physiqu','fisica','force','energy','énergie','motion','mouvement','velocity','vitesse','accelerat','accélér','newton','quantum','quantiqu','wave','onde','thermodynam','electric','électr','magnet','magnét','optic','optiqu','gravit','relativ','circuit'],
+  literature: ['literat','littérat','letterat','novel','roman','poem','poèm','poetry','poésie','author','auteur','narrat','character','personnag','theme','thème','prose','shakespeare','writing','écritur','essay','rhetoric','rhétoriq','metaphor','métaphor','fiction'],
+  math: ['math','matemat','algebra','algèbr','calculus','calcul','geometr','géométr','equation','équation','function','fonction','derivat','dérivé','integral','intégral','theorem','théorèm','matrix','matric','vector','vecteur','probabilit','statistic','statistiqu','trigonometr','trigonométr','logarithm','polynom'],
+  philosophy: ['philosoph','filosof','ethic','éthiqu','moral','metaphys','métaphys','epistem','épistém','logic','logiqu','existential','existentiel','kant','plato','platon','aristot','socrat','nietzsche','descartes','consciousness','conscience','ontolog','virtue','vertu'],
+  history: ['histor','histoir','storia','war','guerre','revolution','révolution','empire','ancient','antiqu','medieval','médiéval','century','siècle','civilizat','civilisat','treaty','traité','dynasty','dynasti','colonial','republic','répub']
+};
+function detectSubject(){
+  const haystack = [
+    kit.notes && kit.notes.title, kit.notes && kit.notes.subtitle,
+    kit.recap && kit.recap.title, kit.recap && kit.recap.summary,
+    (currentChapters.find(c => c.id === currentChapterId) || {}).name,
+    (folders.find(f => f.id === currentFolderId) || {}).name,
+    (kit.sourceText || '').slice(0, 1200)
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  let best = null, bestScore = 0;
+  for(const [subject, words] of Object.entries(SUBJECT_KEYWORDS)){
+    let score = 0;
+    for(const w of words){ if(haystack.includes(w)) score++; }
+    if(score > bestScore){ bestScore = score; best = subject; }
+  }
+  return bestScore >= 2 ? best : 'general';
+}
+function stableIndex(str, len){
+  let h = 0;
+  for(let i = 0; i < str.length; i++){ h = (h * 31 + str.charCodeAt(i)) % 100000; }
+  return len ? h % len : 0;
+}
+function chapterProgressPct(){
+  // Blend flashcard mastery with best quiz score — whichever parts exist.
+  const parts = [];
+  if(kit.flashcards.length) parts.push(kit.progress.learned.length / kit.flashcards.length);
+  if(kit.quiz.length && kit.progress.quizBest !== null) parts.push(kit.progress.quizBest / 100);
+  if(!parts.length) return 0;
+  return Math.round((parts.reduce((a,b) => a+b, 0) / parts.length) * 100);
+}
+function renderChapterHero(){
+  const c = currentChapters.find(x => x.id === currentChapterId);
+  const title = (kit.notes && kit.notes.title) || (kit.recap && kit.recap.title) || (c && c.name) || 'Chapter';
+  document.getElementById('heroTitle').textContent = title;
+
+  const subject = detectSubject();
+  const variants = CHAPTER_ART[subject] || CHAPTER_ART.general;
+  const seed = (currentChapterId || '') + title;
+  document.getElementById('heroArt').innerHTML = variants[stableIndex(seed, variants.length)];
+
+  const pct = chapterProgressPct();
+  document.getElementById('heroBarFill').style.width = pct + '%';
+  document.getElementById('heroPct').textContent = pct + '%';
+}
+
 function renderChapterContext(){
   const f = folders.find(x => x.id === currentFolderId);
   const c = currentChapters.find(x => x.id === currentChapterId);
@@ -1633,6 +1865,22 @@ async function generateRecap(statusEl){
   return await askClaude(sys, truncate(kit.sourceText, 15000), kit.images);
 }
 
+async function generateNotes(statusEl){
+  statusEl.textContent = 'Writing your notes…';
+  const sys = `You are a study assistant writing clean, well-organised course notes, like a really good student's shared notes document. Return ONLY valid JSON (no markdown fences, no preamble) shaped:
+{"title": string, "subtitle": string, "sections": [{"heading": string, "paragraphs": [string,...], "bullets": [string,...], "callout": string|null}], "glossary": [{"term": string, "definition": string}]}
+
+Rules:
+- Split the material into 3-6 sections that follow its natural structure. Give each a short, specific heading (not "Section 1").
+- Each section has 1-2 short paragraphs AND/OR 2-5 bullets — use whichever genuinely fits that content; an empty array is fine for either.
+- Wrap genuinely important terms, names, and key concepts in **double asterisks** inside paragraphs and bullets so they can be highlighted. Use this for 2-5 terms per section, not every other word.
+- "callout" is a short warning about a common mistake or a crucial thing not to forget for that section, or null if there isn't a real one.
+- "subtitle" is a one-line description of what this chapter covers.
+- "glossary" is 4-8 of the most important terms with a SHORT definition each (one line) — this is a quick-reference table at the end, so keep it tight and don't re-explain things at length.
+${langInstruction()} ${MATH_NOTE}`;
+  return await askClaude(sys, truncate(kit.sourceText, 15000), kit.images);
+}
+
 document.getElementById('generateBtn').onclick = async () => {
   const statusEl = document.getElementById('status');
   const btn = document.getElementById('generateBtn');
@@ -1648,6 +1896,7 @@ document.getElementById('generateBtn').onclick = async () => {
     kit.flashcards = await generateFlashcards(kit.fcCount, statusEl);
     kit.quiz = await generateQuiz(kit.quizCount, statusEl);
     kit.recap = await generateRecap(statusEl);
+    kit.notes = await generateNotes(statusEl);
     kit.recapHtml = null;
     kit.generated = true;
     kit.progress = { learned:[], stillLearning:[], quizBest:null, quizLast:null, completionAwarded:false };
@@ -1709,17 +1958,26 @@ async function finalizeNewChapter(name){
 
 /* ================= Tabs ================= */
 function switchTab(name){
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('on', b.dataset.panel === name));
+  document.querySelectorAll('.rail-btn').forEach(b => b.classList.toggle('on', b.dataset.panel === name));
   document.querySelectorAll('.panel-inner').forEach(p => p.classList.toggle('on', p.id === 'panel-' + name));
   if(name === 'progress') renderProgressStats();
-  if(name === 'chat'){
-    const c = currentChapters.find(x => x.id === currentChapterId);
-    document.getElementById('chatContextLabel').textContent = c ? 'Asking about: ' + c.name : 'Ask about this chapter';
-    updateChatFootnote();
-    renderChatMessages();
-  }
 }
-document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.panel)));
+document.querySelectorAll('.rail-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.panel)));
+
+/* Chat dock */
+function openChatDock(){
+  const c = currentChapters.find(x => x.id === currentChapterId);
+  document.getElementById('chatContextLabel').textContent = c ? 'Asking about: ' + c.name : 'Ask about this chapter';
+  updateChatFootnote();
+  renderChatMessages();
+  document.getElementById('chatDock').classList.add('on');
+}
+document.getElementById('chatToggleBtn').onclick = () => {
+  const dock = document.getElementById('chatDock');
+  if(dock.classList.contains('on')) dock.classList.remove('on');
+  else openChatDock();
+};
+document.getElementById('chatCloseBtn').onclick = () => document.getElementById('chatDock').classList.remove('on');
 
 /* ================= Math rendering ================= */
 function renderMath(el){
@@ -1745,7 +2003,8 @@ const fcStarEl = document.getElementById('fcStar');
 const fcCardEl = document.getElementById('fcCard');
 
 function renderFlashcards(){
-  document.getElementById('fcBadge').textContent = kit.flashcards.length;
+  const fcBadgeEl = document.getElementById('fcBadge');
+  if(fcBadgeEl) fcBadgeEl.textContent = kit.flashcards.length;
   fcIndex = 0; fcFilterLearning = false;
   document.getElementById('fcFilterToggle').classList.remove('on');
   updateMasteryBar();
@@ -1799,7 +2058,7 @@ function markCard(status){
   kit.progress.stillLearning = kit.progress.stillLearning.filter(i => i !== realIndex);
   if(status === 'got') kit.progress.learned.push(realIndex);
   if(status === 'learning') kit.progress.stillLearning.push(realIndex);
-  updateMasteryBar(); showCard(); renderProgressStats(); saveKit();
+  updateMasteryBar(); showCard(); renderProgressStats(); renderChapterHero(); saveKit();
   document.getElementById('fcNext').click();
 
   const fullyMastered = kit.flashcards.length > 0 && kit.progress.learned.length === kit.flashcards.length;
@@ -1838,7 +2097,8 @@ document.addEventListener('keydown', (e) => {
 /* ================= Quiz ================= */
 let quizIndex = 0, quizScore = 0, quizAnswered = false;
 function renderQuiz(){
-  document.getElementById('quizBadge').textContent = kit.quiz.length;
+  const quizBadgeEl = document.getElementById('quizBadge');
+  if(quizBadgeEl) quizBadgeEl.textContent = kit.quiz.length;
   quizIndex = 0; quizScore = 0;
   showQuestion();
 }
@@ -1850,7 +2110,7 @@ function showQuestion(){
     const pct = Math.round((quizScore/kit.quiz.length)*100);
     kit.progress.quizLast = pct;
     if(kit.progress.quizBest === null || pct > kit.progress.quizBest) kit.progress.quizBest = pct;
-    saveKit(); renderProgressStats();
+    saveKit(); renderProgressStats(); renderChapterHero();
     el.innerHTML = `<div class="q-result"><div class="big">${quizScore}/${kit.quiz.length}</div><p>You got ${quizScore} of ${kit.quiz.length} right (${pct}%).</p><button class="primary-btn" id="quizRetry" style="margin-top:14px;">Retake quiz</button></div>`;
     document.getElementById('quizRetry').onclick = () => { quizIndex=0; quizScore=0; showQuestion(); };
     return;
@@ -1897,6 +2157,51 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ================= Recap ================= */
+/* ================= Notes (document view) ================= */
+// Converts **term** markers from the model into highlighted spans, while
+// escaping everything else so raw HTML in the source can't slip through.
+function renderInlineTerms(text){
+  return escapeHtml(text).replace(/\*\*(.+?)\*\*/g, '<span class="doc-term">$1</span>');
+}
+function renderNotes(){
+  const empty = document.getElementById('notesEmpty');
+  const body = document.getElementById('notesBody');
+  const n = kit.notes;
+  if(!n || !Array.isArray(n.sections)){
+    empty.style.display = 'block';
+    body.innerHTML = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const sectionsHtml = n.sections.map((s, i) => {
+    const paras = (s.paragraphs || []).map(p => `<p class="doc-p">${renderInlineTerms(p)}</p>`).join('');
+    const bullets = (s.bullets || []).length
+      ? `<ul class="doc-list">${s.bullets.map(b => `<li>${renderInlineTerms(b)}</li>`).join('')}</ul>` : '';
+    const callout = s.callout
+      ? `<div class="doc-callout"><span class="doc-callout-label">Don't forget</span>${renderInlineTerms(s.callout)}</div>` : '';
+    return `<section class="doc-section">
+      <h2 class="doc-h2"><span class="doc-num">${String(i+1).padStart(2,'0')}</span>${escapeHtml(s.heading || '')}</h2>
+      <div class="doc-rule"></div>
+      ${paras}${bullets}${callout}
+    </section>`;
+  }).join('');
+
+  const glossary = (n.glossary || []).length
+    ? `<section class="doc-section">
+        <h2 class="doc-h2">Key terms at a glance</h2>
+        <div class="doc-rule"></div>
+        <table class="doc-keytable"><thead><tr><th>Term</th><th>In short</th></tr></thead>
+        <tbody>${n.glossary.map(g => `<tr><td>${escapeHtml(g.term || '')}</td><td>${escapeHtml(g.definition || '')}</td></tr>`).join('')}</tbody></table>
+      </section>` : '';
+
+  body.innerHTML = `
+    <h1 class="doc-title">${escapeHtml(n.title || '')}</h1>
+    <div class="doc-sub">${escapeHtml(n.subtitle || '')}</div>
+    ${sectionsHtml}${glossary}`;
+  renderMath(body);
+}
+
 function renderRecap(){
   const body = document.getElementById('recapBody');
   if(!kit.recap){ body.innerHTML = ''; return; }
@@ -1974,7 +2279,7 @@ document.getElementById('clearProgressBtn').onclick = () => {
   if(!confirm('Reset mastery and quiz scores for this chapter?')) return;
   kit.progress = { learned:[], stillLearning:[], quizBest:null, quizLast:null, completionAwarded:false };
   saveKit();
-  updateMasteryBar(); showCard(); renderProgressStats();
+  updateMasteryBar(); showCard(); renderProgressStats(); renderChapterHero();
 };
 
 /* ================= Toasts ================= */
